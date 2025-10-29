@@ -1,0 +1,654 @@
+/* --- Letterboxd Inspired Redesign --- */
+
+/* --- Variables --- */
+:root {
+    --bg-dark: #14181C;
+    --bg-panel: #2C3440;
+    --border-color: #445566;
+    --text-primary: #9ab;
+    --text-secondary: #678;
+    --accent-green: #00E054;
+    --accent-orange: #FF8000;
+    --font-main: 'Graphik', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* --- General Body and Layout --- */
+body {
+    font-family: var(--font-main);
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 25px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 25px;
+}
+
+/* --- Header and Title --- */
+header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+h1 {
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 1px;
+    margin: 0;
+    flex-grow: 1; /* Allows title to take space */
+}
+
+.header-actions button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    background-color: var(--bg-panel);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.header-actions button:hover {
+    background-color: var(--border-color);
+    color: #fff;
+}
+
+/* --- Search Overlay --- */
+#search-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(10, 12, 14, 0.8);
+    backdrop-filter: blur(8px);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    padding-top: 10vh;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+#search-overlay.search-overlay-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.search-modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+}
+
+#close-search-btn {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    font-size: 40px;
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+#close-search-btn:hover {
+    color: #fff;
+}
+
+/* --- Search Section --- */
+.search-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+#search-input {
+    width: 100%;
+    padding: 18px 25px;
+    font-size: 1.2rem;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+#search-input:focus {
+    outline: none;
+    border-color: var(--accent-green);
+    box-shadow: 0 0 10px rgba(0, 224, 84, 0.3);
+}
+
+#search-btn {
+    display: none; /* Hidden in the new overlay design */
+}
+
+/* --- Search Results Dropdown --- */
+#search-results {
+    position: relative;
+    width: 100%;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    list-style: none;
+    padding: 5px;
+    margin: 0;
+    max-height: 60vh;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-radius: 6px;
+}
+
+.search-result-item:hover {
+    background-color: var(--border-color);
+}
+
+.search-result-item img {
+    width: 40px;
+    height: 60px;
+    object-fit: cover;
+    margin-right: 15px;
+    border-radius: 3px;
+    border: 1px solid var(--border-color);
+}
+
+.search-result-item .result-info {
+    flex-grow: 1;
+}
+
+.search-result-item h4 {
+    margin: 0 0 4px 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #fff;
+}
+
+.search-result-item p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.search-result-item .add-btn {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background-color: var(--accent-green);
+    color: var(--bg-dark);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.search-result-item .add-btn:hover {
+    background-color: #00ff5c;
+}
+
+/* --- Controls Section (Sort & Filter) --- */
+.controls-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    background-color: rgba(44, 52, 64, 0.5);
+    padding: 15px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.controls-section label {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.controls-section select, #filter-toggle-btn, #reset-filters-btn {
+    padding: 9px 15px;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: #fff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.controls-section select:hover, #filter-toggle-btn:hover, #reset-filters-btn:hover {
+    border-color: var(--text-primary);
+}
+
+/* --- Filter Panel --- */
+#filter-panel {
+    display: none;
+    background-color: rgba(44, 52, 64, 0.5);
+    padding: 25px;
+    margin-bottom: 25px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+    justify-content: center;
+}
+
+.filter-group label {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+/* --- Movie List Grid --- */
+#movie-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 25px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.movie-card {
+    background-color: transparent;
+    border-radius: 8px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.movie-card:hover {
+    transform: translateY(-5px);
+}
+
+.movie-card:hover img {
+    border-color: #fff;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+}
+
+.movie-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
+    transition: border-color 0.3s ease;
+}
+
+.movie-card .movie-info {
+    padding: 12px 8px;
+    text-align: left;
+}
+
+ .movie-card-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #fff;
+    margin: 0;
+    display: inline;
+}
+
+.movie-card-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+}
+
+ .movie-card-year {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0 0 8px 0px;
+    display: inline;
+}
+
+/* --- Rating Stars --- */
+.rating-stars-card {
+    color: var(--accent-green);
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+}
+
+/* --- Message Box --- */
+#message-box {
+    position: fixed;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    z-index: 2000;
+    display: none;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+#message-box.success {
+    background-color: var(--accent-green);
+    color: var(--bg-dark);
+}
+
+#message-box.error {
+    background-color: #e5484d;
+    color: white;
+}
+
+/* --- Modal Styles --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1500;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(10, 12, 14, 0.8);
+    backdrop-filter: blur(8px);
+}
+
+.modal-content {
+    background-color: var(--bg-panel);
+    margin: 8% auto;
+    padding: 35px;
+    border: 1px solid var(--border-color);
+    width: 80%;
+    max-width: 550px;
+    border-radius: 12px;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.close-btn {
+    color: var(--text-secondary);
+    position: absolute;
+    top: 18px;
+    right: 22px;
+    font-size: 32px;
+    font-weight: normal;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: #fff;
+}
+
+.modal h2 {
+    margin-top: 0;
+    color: #fff;
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 25px;
+}
+
+/* --- Add/Edit Details Modal Form --- */
+#details-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group label {
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+#details-form input[type="date"],
+#details-form select,
+#details-form input[type="text"],
+#details-form textarea {
+    padding: 12px;
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: #fff;
+    font-size: 1rem;
+    font-family: var(--font-main);
+    transition: all 0.3s ease;
+}
+
+#details-form input:focus, 
+#details-form select:focus,
+#details-form textarea:focus {
+    outline: none;
+    border-color: var(--accent-green);
+}
+
+.date-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.date-group input {
+    flex-grow: 1;
+}
+
+#today-btn {
+    padding: 12px 18px;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#today-btn:hover {
+    border-color: var(--text-primary);
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#modal-message-box {
+    text-align: center;
+    padding: 12px;
+    border-radius: 6px;
+    background-color: #e5484d;
+    color: white;
+    display: none;
+    margin-top: 10px;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.modal-buttons button {
+    padding: 12px 28px;
+    border-radius: 6px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#save-btn {
+    background-color: var(--accent-orange);
+    color: #fff;
+}
+
+#save-btn:hover {
+    filter: brightness(1.1);
+}
+
+#cancel-btn {
+    background-color: var(--border-color);
+    color: #fff;
+}
+
+#cancel-btn:hover {
+    filter: brightness(1.2);
+}
+
+/* --- Info Modal --- */
+#movie-info-modal .modal-content {
+    max-width: 650px;
+}
+
+#info-modal-title {
+    font-size: 2rem;
+    line-height: 1.2;
+    font-weight: 600;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px 30px;
+    margin-bottom: 30px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 25px;
+    margin-top: 25px;
+}
+
+.info-item strong {
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.info-item p {
+    margin: 0;
+    font-size: 1rem;
+    color: #fff;
+}
+
+.info-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 30px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 25px;
+}
+
+.info-buttons button {
+    padding: 10px 22px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: var(--bg-panel);
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+.info-buttons button:hover {
+    border-color: #fff;
+    color: #fff;
+}
+
+#delete-btn { background-color: #e5484d; border-color: #e5484d; }
+#delete-btn:hover { filter: brightness(1.1); }
+
+#imdb-btn { background-color: #f5c518; color: black; border-color: #f5c518; }
+#imdb-btn:hover { filter: brightness(1.1); }
+/* Style Letterboxd button with Letterboxd brand color */
+#letterboxd-btn { background-color: #00C8AA; color: var(--bg-dark); border-color: #00C8AA; }
+#letterboxd-btn:hover { filter: brightness(1.1); }
+
+/* Style Edit button with blue color */
+#edit-btn { background-color: #1e90ff; color: #fff; border-color: #1e90ff; }
+#edit-btn:hover { filter: brightness(1.1); }
+
+/* --- Delete Confirmation Modal --- */
+#delete-confirm-modal .modal-content {
+    max-width: 450px;
+    text-align: center;
+}
+
+#delete-confirm-modal p {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    color: #fff;
+    line-height: 1.6;
+}
+
+#confirm-delete-btn {
+    background-color: #e5484d;
+    color: white;
+}
+#cancel-delete-btn {
+    background-color: var(--border-color);
+    color: white;
+}
+
+/* --- Scrollbar styles --- */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+select,
+select:focus,
+select:active {
+    background-color: var(--bg-panel);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 1rem;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    width: 100%;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+select option {
+    background-color: var(--bg-panel);
+    color: var(--text-primary);
+}

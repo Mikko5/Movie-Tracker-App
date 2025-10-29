@@ -1,0 +1,987 @@
+[
+    {
+        "ID":1,
+        "TITLE":"Godzilla vs. Kong",
+        "DIRECTOR":[
+            "Adam Wingard"
+        ],
+        "YEAR":2021,
+        "REVIEW":65.0,
+        "GENRE":[
+            "Action",
+            "Sci-fi",
+            "Thriller"
+        ],
+        "Runtime":"01:53:00",
+        "FORMAT":"HBO",
+        "DATE":"01-01-2023",
+        "REWATCH":false,
+        "COMMENTS":"Goede actie maar verhaal is minder"
+    },
+    {
+        "ID":2,
+        "TITLE":"The Guilty",
+        "DIRECTOR":[
+            "Antoine Fuqua"
+        ],
+        "YEAR":2021,
+        "REVIEW":60.0,
+        "GENRE":[
+            "Thriller",
+            "Crime"
+        ],
+        "Runtime":"01:30:00",
+        "FORMAT":"Netflix",
+        "DATE":"01-01-2023",
+        "REWATCH":false,
+        "COMMENTS":"Film speelt zich af in een kamer; ik zat niet echt goed op te letten"
+    },
+    {
+        "ID":3,
+        "TITLE":"Everything Everywhere All at Once",
+        "DIRECTOR":[
+            "Dan Kwan",
+            "Daniel Scheinert"
+        ],
+        "YEAR":2022,
+        "REVIEW":80.0,
+        "GENRE":[
+            "Action",
+            "Adventure",
+            "Comedy"
+        ],
+        "Runtime":"02:20:00",
+        "FORMAT":"Prime",
+        "DATE":"03-01-2023",
+        "REWATCH":false,
+        "COMMENTS":"leuk"
+    },
+    {
+        "ID":4,
+        "TITLE":"Logan",
+        "DIRECTOR":[
+            "James Mangold"
+        ],
+        "YEAR":2017,
+        "REVIEW":85.0,
+        "GENRE":[
+            "Action",
+            "Drama",
+            "Sci-fi"
+        ],
+        "Runtime":"02:17:00",
+        "FORMAT":"Disney+",
+        "DATE":"05-01-2023",
+        "REWATCH":false,
+        "COMMENTS":"Goede film. Actie en verhaal waren goed. Badguy minder sterk"
+    },
+    {
+        "ID":5,
+        "TITLE":"Ford v Ferrari",
+        "DIRECTOR":[
+            "James Mangold"
+        ],
+        "YEAR":2019,
+        "REVIEW":80.0,
+        "GENRE":[
+            "Drama",
+            "Sport"
+        ],
+        "Runtime":"02:37:00",
+        "FORMAT":"Disney+",
+        "DATE":"06-01-2023",
+        "REWATCH":false,
+        "COMMENTS":"De race was goed"
+    },
+    {
+        "ID":6,
+        "TITLE":"John Wick",
+        "DIRECTOR":[
+            "Chad Stahelski"
+        ],
+        "YEAR":2014,
+        "REVIEW":70.0,
+        "GENRE":[
+            "Action",
+            "Crime",
+            "Thriller"
+        ],
+        "Runtime":"01:41:00",
+        "FORMAT":"HBO",
+        "DATE":"09-01-2023",
+        "REWATCH":true,
+        "COMMENTS":"actie actie en nog meer actie"
+    },
+    {
+        "ID":7,
+        "TITLE":"my hero academia world heroes' mission",
+        "DIRECTOR":[
+            "Kenji Nagasaki"
+        ],
+        "YEAR":2021,
+        "REVIEW":65.0,
+        "GENRE":[
+            "Animation",
+            "Action",
+            "Adventure"
+        ],
+        "Runtime":"01:41:00",
+        "FORMAT":"Online",
+        "DATE":"12-02-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":8,
+        "TITLE":"John Wick 2",
+        "DIRECTOR":[
+            "Chad Stahelski"
+        ],
+        "YEAR":2017,
+        "REVIEW":70.0,
+        "GENRE":[
+            "Action",
+            "Crime",
+            "Thriller"
+        ],
+        "Runtime":"02:02:00",
+        "FORMAT":"Netflix",
+        "DATE":"21-03-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":9,
+        "TITLE":"John Wick 3",
+        "DIRECTOR":[
+            "Chad Stahelski"
+        ],
+        "YEAR":2019,
+        "REVIEW":75.0,
+        "GENRE":[
+            "Action",
+            "Crime",
+            "Thriller"
+        ],
+        "Runtime":"02:10:00",
+        "FORMAT":"Netflix",
+        "DATE":"23-03-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":10,
+        "TITLE":"The Fast and the Furious",
+        "DIRECTOR":[
+            "Rob Cohen"
+        ],
+        "YEAR":2001,
+        "REVIEW":60.0,
+        "GENRE":[
+            "Action",
+            "Crime",
+            "Thriller"
+        ],
+        "Runtime":"01:46:00",
+        "FORMAT":"Online",
+        "DATE":"24-03-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":11,
+        "TITLE":"John Wick 4",
+        "DIRECTOR":[
+            "Chad Stahelski"
+        ],
+        "YEAR":2023,
+        "REVIEW":77.0,
+        "GENRE":[
+            "Action",
+            "Crime",
+            "Thriller"
+        ],
+        "Runtime":"02:49:00",
+        "FORMAT":"Bioscoop",
+        "DATE":"26-03-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":12,
+        "TITLE":"The Super Mario Bros. Movie",
+        "DIRECTOR":[
+            "Aaron Horvath",
+            "Michael Jelenic"
+        ],
+        "YEAR":2023,
+        "REVIEW":75.0,
+        "GENRE":[
+            "Animation",
+            "Adventure",
+            "Comedy"
+        ],
+        "Runtime":"01:32:00",
+        "FORMAT":"Online",
+        "DATE":"16-05-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":13,
+        "TITLE":"guardians of the galaxy 3",
+        "DIRECTOR":[
+            "James Gunn"
+        ],
+        "YEAR":2023,
+        "REVIEW":85.0,
+        "GENRE":[
+            "Action",
+            "Adventure",
+            "Comedy"
+        ],
+        "Runtime":"02:30:00",
+        "FORMAT":"Bioscoop",
+        "DATE":"25-05-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":14,
+        "TITLE":"Ant-Man and the Wasp: Quantumania",
+        "DIRECTOR":[
+            "Peyton Reed"
+        ],
+        "YEAR":2023,
+        "REVIEW":50.0,
+        "GENRE":[
+            "Action",
+            "Adventure",
+            "Comedy"
+        ],
+        "Runtime":"02:04:00",
+        "FORMAT":"Disney+",
+        "DATE":"26-05-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":15,
+        "TITLE":"The Menu",
+        "DIRECTOR":[
+            "Mark Mylod"
+        ],
+        "YEAR":2022,
+        "REVIEW":80.0,
+        "GENRE":[
+            "Comedy",
+            "Horror",
+            "Thriller "
+        ],
+        "Runtime":"01:47:00",
+        "FORMAT":"Disney+",
+        "DATE":"04-06-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":16,
+        "TITLE":"Spider-Man: Across the Spider-Verse",
+        "DIRECTOR":[
+            "Joaquim Dos Santos",
+            "Kemp Powers",
+            "justin k thompson"
+        ],
+        "YEAR":2023,
+        "REVIEW":85.0,
+        "GENRE":[
+            "Animation",
+            "Action",
+            "Adventure"
+        ],
+        "Runtime":"02:20:00",
+        "FORMAT":"Bioscoop",
+        "DATE":"08-07-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":17,
+        "TITLE":"Mission: Impossible - Dead Reckoning Part One",
+        "DIRECTOR":[
+            "Christopher McQuarrie"
+        ],
+        "YEAR":2023,
+        "REVIEW":80.0,
+        "GENRE":[
+            "Action",
+            "Adventure",
+            "Thriller"
+        ],
+        "Runtime":"02:43:00",
+        "FORMAT":"Bioscoop",
+        "DATE":"17-07-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":18,
+        "TITLE":"The Flash",
+        "DIRECTOR":[
+            "Andy Muschietti"
+        ],
+        "YEAR":2023,
+        "REVIEW":55.0,
+        "GENRE":[
+            "Action",
+            "Adventure",
+            "Fantasy"
+        ],
+        "Runtime":"02:24:00",
+        "FORMAT":"Online",
+        "DATE":"25-07-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":19,
+        "TITLE":"Gran Turismo",
+        "DIRECTOR":[
+            "Neill Blomkamp"
+        ],
+        "YEAR":2023,
+        "REVIEW":70.0,
+        "GENRE":[
+            "Action",
+            "Adventure",
+            "Drama"
+        ],
+        "Runtime":"02:15:00",
+        "FORMAT":"Bioscoop",
+        "DATE":"11-08-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":20,
+        "TITLE":"Saw",
+        "DIRECTOR":[
+            "James Wan"
+        ],
+        "YEAR":2004,
+        "REVIEW":70.0,
+        "GENRE":[
+            "Horror",
+            "Mystery",
+            "Thriller"
+        ],
+        "Runtime":"01:43:00",
+        "FORMAT":"Prime",
+        "DATE":"01-10-2023",
+        "REWATCH":true,
+        "COMMENTS":null
+    },
+    {
+        "ID":21,
+        "TITLE":"Saw 2",
+        "DIRECTOR":[
+            "Darren Lynn Bousman"
+        ],
+        "YEAR":2005,
+        "REVIEW":65.0,
+        "GENRE":[
+            "Horror",
+            "Mystery",
+            "Thriller"
+        ],
+        "Runtime":"01:33:00",
+        "FORMAT":"Online",
+        "DATE":"03-10-2023",
+        "REWATCH":true,
+        "COMMENTS":null
+    },
+    {
+        "ID":22,
+        "TITLE":"Saw X",
+        "DIRECTOR":[
+            "Kevin Greutert"
+        ],
+        "YEAR":2023,
+        "REVIEW":70.0,
+        "GENRE":[
+            "Horror",
+            "Mystery",
+            "Thriller"
+        ],
+        "Runtime":"01:58:00",
+        "FORMAT":"Online",
+        "DATE":"28-10-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":23,
+        "TITLE":"Nightcrawler ",
+        "DIRECTOR":[
+            "Dan Gilroy"
+        ],
+        "YEAR":2014,
+        "REVIEW":80.0,
+        "GENRE":[
+            "Crime",
+            "Drama",
+            "Thriller"
+        ],
+        "Runtime":"01:57:00",
+        "FORMAT":"Online",
+        "DATE":"21-11-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":24,
+        "TITLE":"The Departed",
+        "DIRECTOR":[
+            "Martin Scorsese"
+        ],
+        "YEAR":2006,
+        "REVIEW":80.0,
+        "GENRE":[
+            "Crime",
+            "Drama",
+            "Thriller"
+        ],
+        "Runtime":"02:31:00",
+        "FORMAT":"Prime",
+        "DATE":"25-11-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":25,
+        "TITLE":"shrek",
+        "DIRECTOR":[
+            "Andrew Adamson",
+            "Vicky Jenson"
+        ],
+        "YEAR":2001,
+        "REVIEW":60.0,
+        "GENRE":[
+            "Animation",
+            "Adventure",
+            "Comedy"
+        ],
+        "Runtime":"01:30:00",
+        "FORMAT":"Prime",
+        "DATE":"26-11-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":26,
+        "TITLE":"Paddington",
+        "DIRECTOR":[
+            "Paul King"
+        ],
+        "YEAR":2014,
+        "REVIEW":70.0,
+        "GENRE":[
+            "Adventure",
+            "Comedy",
+            "Family"
+        ],
+        "Runtime":"01:35:00",
+        "FORMAT":"HBO",
+        "DATE":"09-12-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":27,
+        "TITLE":"Arrival\n",
+        "DIRECTOR":[
+            "Denis Villeneuve"
+        ],
+        "YEAR":2016,
+        "REVIEW":70.0,
+        "GENRE":[
+            "Drama",
+            "Mystery",
+            "Sci-Fi"
+        ],
+        "Runtime":"01:56:00",
+        "FORMAT":"Prime",
+        "DATE":"10-12-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":28,
+        "TITLE":"The Talented Mr. Ripley",
+        "DIRECTOR":[
+            "Anthony Minghella"
+        ],
+        "YEAR":1999,
+        "REVIEW":75.0,
+        "GENRE":[
+            "Crime",
+            "Drama",
+            "Thriller"
+        ],
+        "Runtime":"02:19:00",
+        "FORMAT":"Netflix",
+        "DATE":"12-12-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":29,
+        "TITLE":"The Covenant",
+        "DIRECTOR":[
+            "Guy Ritchie"
+        ],
+        "YEAR":2023,
+        "REVIEW":75.0,
+        "GENRE":[
+            "Action",
+            "Drama",
+            "Thriller"
+        ],
+        "Runtime":"02:03:00",
+        "FORMAT":"Prime",
+        "DATE":"15-12-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":30,
+        "TITLE":"Predestination",
+        "DIRECTOR":[
+            "Michael Spierig",
+            "Peter Spierig"
+        ],
+        "YEAR":2014,
+        "REVIEW":56.0,
+        "GENRE":[
+            "Action",
+            "Drama",
+            "Sci-fi"
+        ],
+        "Runtime":"01:37:00",
+        "FORMAT":"Netflix",
+        "DATE":"16-12-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":31,
+        "TITLE":"21 Jump Street",
+        "DIRECTOR":[
+            "Phil Lord",
+            "Christopher Miller"
+        ],
+        "YEAR":2012,
+        "REVIEW":70.0,
+        "GENRE":[
+            "Action",
+            "Comedy",
+            "Crime"
+        ],
+        "Runtime":"01:49:00",
+        "FORMAT":"Online",
+        "DATE":"21-12-2023",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":32,
+        "TITLE":"The Prestige",
+        "DIRECTOR":[
+            "Christopher Nolan"
+        ],
+        "YEAR":2006,
+        "REVIEW":90.0,
+        "GENRE":[
+            "Drama",
+            "Mystery",
+            "Sci-Fi"
+        ],
+        "Runtime":"02:10:00",
+        "FORMAT":"Online",
+        "DATE":"01-01-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":33,
+        "TITLE":"Triangle of Sadness",
+        "DIRECTOR":[
+            "Ruben \u00d6stlund"
+        ],
+        "YEAR":2022,
+        "REVIEW":70.0,
+        "GENRE":[
+            "comedy",
+            "Drama"
+        ],
+        "Runtime":"02:27:00",
+        "FORMAT":"Online",
+        "DATE":"01-03-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":34,
+        "TITLE":"Extraction 2",
+        "DIRECTOR":[
+            "Sam Hargrave"
+        ],
+        "YEAR":2023,
+        "REVIEW":65.0,
+        "GENRE":[
+            "Action",
+            "Thriller"
+        ],
+        "Runtime":"02:02:00",
+        "FORMAT":"Netflix",
+        "DATE":"01-03-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":35,
+        "TITLE":"society of the snow",
+        "DIRECTOR":[
+            "Juan Antonio Bayona"
+        ],
+        "YEAR":2024,
+        "REVIEW":100.0,
+        "GENRE":[
+            "Adventure",
+            "Drama",
+            "History"
+        ],
+        "Runtime":"02:24:00",
+        "FORMAT":"Netflix",
+        "DATE":"16-01-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":36,
+        "TITLE":"The Grand Budapest Hotel",
+        "DIRECTOR":[
+            "Wes Anderson"
+        ],
+        "YEAR":2014,
+        "REVIEW":80.0,
+        "GENRE":[
+            "Adventure",
+            "Comedy",
+            "Crime"
+        ],
+        "Runtime":"01:39:00",
+        "FORMAT":"Disney+",
+        "DATE":"18-01-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":37,
+        "TITLE":"Everest",
+        "DIRECTOR":[
+            "Baltasar Korm\u00e1kur"
+        ],
+        "YEAR":2015,
+        "REVIEW":60.0,
+        "GENRE":[
+            "Action",
+            "Adventure",
+            "biography"
+        ],
+        "Runtime":"02:01:00",
+        "FORMAT":"Prime",
+        "DATE":"21-01-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":38,
+        "TITLE":"Lady Bird",
+        "DIRECTOR":[
+            "Greta Gerwig"
+        ],
+        "YEAR":2017,
+        "REVIEW":80.0,
+        "GENRE":[
+            "Comedy",
+            "Drama"
+        ],
+        "Runtime":"01:34:00",
+        "FORMAT":"Prime",
+        "DATE":"24-01-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":39,
+        "TITLE":"Wonka",
+        "DIRECTOR":[
+            "Paul King"
+        ],
+        "YEAR":2023,
+        "REVIEW":70.0,
+        "GENRE":[
+            "Adventure",
+            "Comedy",
+            "Family"
+        ],
+        "Runtime":"01:56:00",
+        "FORMAT":"Online",
+        "DATE":"02-02-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":40,
+        "TITLE":"The Beekeeper",
+        "DIRECTOR":[
+            "David Ayer"
+        ],
+        "YEAR":2024,
+        "REVIEW":60.0,
+        "GENRE":[
+            "Action",
+            "Triller"
+        ],
+        "Runtime":"01:45:00",
+        "FORMAT":"Online",
+        "DATE":"03-02-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":41,
+        "TITLE":"Fight Club",
+        "DIRECTOR":[
+            "David Fincher"
+        ],
+        "YEAR":1999,
+        "REVIEW":80.0,
+        "GENRE":[
+            "Drama"
+        ],
+        "Runtime":"02:19:00",
+        "FORMAT":"Disney+",
+        "DATE":"06-02-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":42,
+        "TITLE":"Drive",
+        "DIRECTOR":[
+            "Nicolas Winding Refn"
+        ],
+        "YEAR":2011,
+        "REVIEW":60.0,
+        "GENRE":[
+            "Drama",
+            "Thriller",
+            "Crime"
+        ],
+        "Runtime":"01:40:00",
+        "FORMAT":"Prime",
+        "DATE":"08-02-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":43,
+        "TITLE":"A Simple Favor",
+        "DIRECTOR":[
+            "Paul Feig"
+        ],
+        "YEAR":2018,
+        "REVIEW":60.0,
+        "GENRE":[
+            "Crime",
+            "Thriller",
+            "Mystery",
+            "Comedy"
+        ],
+        "Runtime":"01:57:00",
+        "FORMAT":"Prime",
+        "DATE":"09-02-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":44,
+        "TITLE":"Dune",
+        "DIRECTOR":[
+            "Denis Villeneuve"
+        ],
+        "YEAR":2021,
+        "REVIEW":70.0,
+        "GENRE":[
+            "Science Fiction",
+            "Adventure"
+        ],
+        "Runtime":"02:35:00",
+        "FORMAT":"HBO",
+        "DATE":"01-03-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":45,
+        "TITLE":"Ricky Stanicky",
+        "DIRECTOR":[
+            "Peter Farrelly"
+        ],
+        "YEAR":2024,
+        "REVIEW":60.0,
+        "GENRE":[
+            "Comedy"
+        ],
+        "Runtime":"01:53:00",
+        "FORMAT":"Prime",
+        "DATE":"14-03-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":46,
+        "TITLE":"Back to the Future",
+        "DIRECTOR":[
+            "Robert Zemeckis"
+        ],
+        "YEAR":1985,
+        "REVIEW":75.0,
+        "GENRE":[
+            "Adventure",
+            "Comedy",
+            "Science Fiction"
+        ],
+        "Runtime":"01:56:00",
+        "FORMAT":"Online",
+        "DATE":"29-03-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":47,
+        "TITLE":"The Maze Runner",
+        "DIRECTOR":[
+            "Wes Ball"
+        ],
+        "YEAR":2014,
+        "REVIEW":60.0,
+        "GENRE":[
+            "Action",
+            "Mystery",
+            "Science Fiction",
+            "Thriller"
+        ],
+        "Runtime":"01:53:00",
+        "FORMAT":"Online",
+        "DATE":"13-04-2024",
+        "REWATCH":true,
+        "COMMENTS":null
+    },
+    {
+        "ID":48,
+        "TITLE":"Dune: Part Two",
+        "DIRECTOR":[
+            "Denis Villeneuve"
+        ],
+        "YEAR":2024,
+        "REVIEW":80.0,
+        "GENRE":[
+            "Science Fiction",
+            "Adventure"
+        ],
+        "Runtime":"02:47:00",
+        "FORMAT":"Bioscoop",
+        "DATE":"21-04-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":49,
+        "TITLE":"Kingdom of the Planet of the Apes",
+        "DIRECTOR":[
+            "Wes Ball"
+        ],
+        "YEAR":2024,
+        "REVIEW":70.0,
+        "GENRE":[
+            "Science Fiction",
+            "Adventure",
+            "Action"
+        ],
+        "Runtime":"02:25:00",
+        "FORMAT":"Bioscoop",
+        "DATE":"07-05-2024",
+        "REWATCH":false,
+        "COMMENTS":"IGN prijsvraag; pathe arena"
+    },
+    {
+        "ID":50,
+        "TITLE":"Maze Runner: The Scorch Trials",
+        "DIRECTOR":[
+            "Wes Ball"
+        ],
+        "YEAR":2015,
+        "REVIEW":60.0,
+        "GENRE":[
+            "Science Fiction",
+            "Action",
+            "Thriller",
+            "Adventure"
+        ],
+        "Runtime":"02:11:00",
+        "FORMAT":"Online",
+        "DATE":"18-05-2024",
+        "REWATCH":true,
+        "COMMENTS":null
+    },
+    {
+        "ID":51,
+        "TITLE":"Civil War",
+        "DIRECTOR":[
+            "Alex Garland"
+        ],
+        "YEAR":2024,
+        "REVIEW":80.0,
+        "GENRE":[
+            "War",
+            "Action",
+            "Drama"
+        ],
+        "Runtime":"01:49:00",
+        "FORMAT":"Online",
+        "DATE":"24-05-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    },
+    {
+        "ID":52,
+        "TITLE":"The Fall Guy",
+        "DIRECTOR":[
+            "David Leitch"
+        ],
+        "YEAR":2024,
+        "REVIEW":70.0,
+        "GENRE":[
+            "Action",
+            "Comedy"
+        ],
+        "Runtime":"02:06:00",
+        "FORMAT":"Online",
+        "DATE":"30-05-2024",
+        "REWATCH":false,
+        "COMMENTS":null
+    }
+]

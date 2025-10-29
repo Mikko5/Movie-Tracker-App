@@ -1,0 +1,157 @@
+const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
+const path = require('path');
+const fs = require('fs');
+const chokidar = require('fs').watch;  // Node.js built-in file watcher
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
+// Add this block for auto-reloading
+try {
+  require('electron-reloader')(module);
+} catch (_) {}
+
+// Get the saved path from user data or use default
+const getUserDataPath = () => {
+  const savedPath = path.join(app.getPath('userData'), 'savedPath.txt');
+  if (fs.existsSync(savedPath)) {
+    return fs.readFileSync(savedPath, 'utf8');
+  }
+  return path.join(__dirname, '..', 'movie-data.json');
+};
+
+let jsonPath = getUserDataPath();
+
+
+function createWindow() {
+    const win = new BrowserWindow({
+        width: 1000,
+        height: 800,
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
+            contextIsolation: true,
+            nodeIntegration: false
+        }
+    });
+
+    // Watch for changes in the JSON file
+    let watcher = null; 
+    function setupWatcher() {
+        if (watcher) {
+            watcher.close();
+        }
+        watcher = chokidar(jsonPath, (eventType, filename) => {
+            if (eventType === 'change') {
+                win.webContents.send('json-updated');
+            }
+        });
+    }
+    setupWatcher();
+
+    // Update watcher when JSON path changes
+    ipcMain.on('json-path-changed', () => {
+        setupWatcher();
+    });
+
+    win.loadFile(path.join(__dirname, 'movielist.html'));
+    win.webContents.openDevTools();
+}
+
+app.whenReady().then(() => {
+  createWindow();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
+});
+
+// Close the app when all windows are closed (except on macOS)
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+
+// --- IPC Handlers for File I/O ---
+
+// IPC handler to select save location for movie-data.json
+ipcMain.handle('select-save-location', async () => {
+  const result = await dialog.showSaveDialog({
+    defaultPath: jsonPath,
+    filters: [{ name: 'JSON', extensions: ['json'] }],
+    properties: ['showOverwriteConfirmation']
+  });
+  
+  if (!result.canceled && result.filePath) {
+    const oldPath = jsonPath;
+    
+    // Copy existing data to new location if it exists
+    if (fs.existsSync(oldPath)) {
+      try {
+        // Copy data to new location
+        const currentData = fs.readFileSync(oldPath, 'utf8');
+        fs.writeFileSync(result.filePath, currentData, 'utf8');
+        
+        // Delete the old file only after successful copy
+        try {
+          fs.unlinkSync(oldPath);
+        } catch (deleteError) {
+          console.error('Error deleting old file:', deleteError);
+          // Continue even if delete fails
+        }
+      } catch (error) {
+        console.error('Error copying data:', error);
+        return { error: 'Failed to copy existing data to new location' };
+      }
+    }
+
+    // Update the path only after successful copy
+    jsonPath = result.filePath;
+    // Save the new path to user data
+    const savedPath = path.join(app.getPath('userData'), 'savedPath.txt');
+    fs.writeFileSync(savedPath, jsonPath, 'utf8');
+    
+    return { success: true, path: jsonPath };
+  }
+  return { canceled: true };
+});
+
+// IPC handler to send the API key to the renderer process
+ipcMain.handle('get-api-key', async () => {
+  return process.env.APIKEY;
+});
+
+// Handle request to open an external link
+ipcMain.on('open-external-link', (event, url) => {
+  if (url && (url.startsWith('http:') || url.startsWith('https:'))) {
+    shell.openExternal(url);
+  } else {
+    console.error('Attempted to open invalid external link:', url);
+  }
+});
+
+// Reads the content of movie-data.json and returns it
+ipcMain.handle('read-json', async () => {
+  try {
+    // Check if the file exists, if not, create it with an empty array
+    if (!fs.existsSync(jsonPath)) {
+      fs.writeFileSync(jsonPath, JSON.stringify([], null, 2), 'utf-8');
+    }
+    const data = fs.readFileSync(jsonPath, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    console.error('Failed to read JSON file:', err);
+    return { error: err.message };
+  }
+});
+
+// Writes the given data to movie-data.json
+ipcMain.handle('write-json', async (event, newData) => {
+  try {
+    fs.writeFileSync(jsonPath, JSON.stringify(newData, null, 2), 'utf-8');
+    return { success: true };
+  } catch (err) {
+    console.error('Failed to write JSON file:', err);
+    return { error: err.message };
+  }
+});
