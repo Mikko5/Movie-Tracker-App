@@ -4,7 +4,8 @@
   "main": "src/main.js",
   "description": "Electron app to read, modify, and save a JSON file.",
   "scripts": {
-    "start": "electron .",
+    "start": "cross-env NODE_ENV=development electron .",
+    "start:prod": "electron .",
     "build": "electron-builder",
     "pack": "electron-builder --dir"
   },
@@ -20,6 +21,7 @@
     }
   },
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "electron": "^29.3.0",
     "electron-builder": "^26.0.12",
     "electron-reloader": "^1.2.3"

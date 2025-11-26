@@ -4,12 +4,13 @@
 1. [Overview & Purpose](#overview--purpose)  
 2. [How It Works (High-Level)](#how-it-works-high-level)  
 3. [Setup & Installation](#setup--installation)  
-4. [Usage Examples](#usage-examples)  
-5. [Key Modules & Functions](#key-modules--functions)  
-6. [Data Flow & Dependencies](#data-flow--dependencies)  
-7. [Error Handling & Edge Cases](#error-handling--edge-cases)  
-8. [Customization & Extension](#customization--extension)  
-9. [Known Limitations & Future Improvements](#known-limitations--future-improvements)
+4. [Running the Application](#running-the-application)
+5. [Usage Examples](#usage-examples)  
+6. [Key Modules & Functions](#key-modules--functions)  
+7. [Data Flow & Dependencies](#data-flow--dependencies)  
+8. [Error Handling & Edge Cases](#error-handling--edge-cases)  
+9. [Customization & Extension](#customization--extension)  
+10. [Known Limitations & Future Improvements](#known-limitations--future-improvements)
 
 ---
 
@@ -21,6 +22,7 @@ This Electron-based application helps you build and maintain a personal “watch
 - Record details (rating, watch date, format, rewatch status)  
 - Filter & sort your collection by year, genre, director, format, rating, or date  
 - View full details with external links to IMDb & Letterboxd  
+- **Development & Production Modes** for safe testing
 
 ---
 
@@ -36,7 +38,8 @@ This Electron-based application helps you build and maintain a personal “watch
    - **JavaScript** (`src/movielist.js`): State loading, rendering, TMDB API integration, modal handling, JSON persistence.  
 
 3. **Data Storage**  
-   - `movie-data.json` at project root stores an array of movie entries.  
+   - **Production**: `movie-data.json` (or user-selected location).
+   - **Development**: `movie-data.dev.json` (fixed location for safety).
    - Each entry includes TMDB IDs, title, poster path, release date, runtime, genres, director, user rating & watch info.  
 
 ---
@@ -58,20 +61,40 @@ This Electron-based application helps you build and maintain a personal “watch
    - Create a file named `.env` in the project root  
    - Add your key:
      ```text
-     TMDB_API_KEY=your_token_here
+     APIKEY=your_token_here
      ```
+     *(Note: The code uses `process.env.APIKEY`)*
 
-4. **Run the App**  
-   ```powershell
-   npm start
-   ```
+---
+
+## Running the Application
+
+### Development Mode
+Use this mode for developing features or testing without affecting your real data.
+- **Command**: `npm start` (or `npm run dev`)
+- **Data File**: `movie-data.dev.json`
+- **Behavior**: The "Select Save Location" button is **disabled** to prevent accidental overwrites of your production data.
+
+```powershell
+npm start
+```
+
+### Production Mode
+Use this mode for your actual usage.
+- **Command**: `npm run start:prod`
+- **Data File**: `movie-data.json` (default) or your custom selected file.
+- **Behavior**: You can change the save location via Settings.
+
+```powershell
+npm run start:prod
+```
 
 ---
 
 ## Usage Examples  
 
 - **Add a Movie**  
-  1. Click the “Search” button in the header  
+  1. Click the **Search** button in the header  
   2. Type a title (after 3 characters) and select “Add”  
   3. Fill in rating, date, format, etc., and click **Add to List**  
 
@@ -84,6 +107,11 @@ This Electron-based application helps you build and maintain a personal “watch
   - Toggle filters panel, choose year/genre/director/format  
   - Use sort dropdown for date or rating ascending/descending  
 
+- **Settings & Save Location**
+  - Click **Settings** in the header.
+  - **Production**: Click "Select Save Location" to choose where to store your JSON file.
+  - **Development**: This option is disabled.
+
 - **External Links**  
   - Inside the info modal, click **IMDb** or **Letterboxd** to open in your browser  
 
@@ -92,9 +120,10 @@ This Electron-based application helps you build and maintain a personal “watch
 ## Key Modules & Functions  
 
 ### src/main.js  
-- `ipcMain.handle('read-json')` — Reads & parses `movie-data.json`.  
+- `ipcMain.handle('read-json')` — Reads & parses the appropriate JSON file.  
 - `ipcMain.handle('write-json', data)` — Writes array back to JSON.  
 - `ipcMain.handle('get-api-key')` — Loads `.env` and returns the TMDB key.  
+- `ipcMain.handle('is-dev')` — Checks if the app is running in development mode.
 
 ### src/preload.js  
 - Exposes:
@@ -137,7 +166,7 @@ This Electron-based application helps you build and maintain a personal “watch
 4. **Renderer** updates the DOM and `watchedMovies`.  
 5. **Persistence** writes JSON to disk.  
 
-**Dependencies**: `electron`, `electron-reloader` (dev), `dotenv`, native `fetch`.  
+**Dependencies**: `electron`, `electron-reloader` (dev), `dotenv`, native `fetch`, `cross-env`.  
 
 ---
 

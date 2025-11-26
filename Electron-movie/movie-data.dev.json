@@ -1,0 +1,44 @@
+[
+  {
+    "id": 399566,
+    "entryId": "f46cd05d-7139-4f0f-911f-fe73577e0858",
+    "title": "Godzilla vs. Kong",
+    "poster_path": "/pgqgaUx1cJb5oZQQ5v0tNARCeBp.jpg",
+    "release_date": "2021-03-24",
+    "runtime": 114,
+    "genres": [
+      "Action",
+      "Science Fiction",
+      "Adventure"
+    ],
+    "imdb_id": "tt5034838",
+    "director": "Adam Wingard",
+    "score": 90,
+    "userRating": "3",
+    "watchDate": "2023-01-01",
+    "format": "HBO",
+    "comment": "Goede actie maar verhaal is minder",
+    "isRewatch": false
+  },
+  {
+    "id": 567748,
+    "entryId": "64dd03d6-94ac-47e2-bae4-227c30e62a21",
+    "title": "The Guilty",
+    "poster_path": "/m8aR1k35oZMOzZ1kYWUyt401mwq.jpg",
+    "release_date": "2021-09-24",
+    "runtime": 91,
+    "genres": [
+      "Drama",
+      "Thriller"
+    ],
+    "imdb_id": "tt9421570",
+    "director": "Antoine Fuqua",
+    "score": 90,
+    "userRating": 1.5,
+    "watchDate": "2023-01-01",
+    "format": "",
+    "comment": "Film speelt zich af in een kamer; ik zat niet echt goed op te letten",
+    "isRewatch": false,
+    "customPoster": ""
+  }
+]

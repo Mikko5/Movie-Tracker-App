@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Movie Tracker</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="container">
         <header>
             <h1>My Movie Tracker</h1>
             <div class="header-actions">
-                <button id="select-save-location-btn">Select Save Location</button>
+                <button id="settings-btn">Settings</button>
                 <button id="open-search-btn">Search</button>
             </div>
         </header>
-        
+
         <div id="message-box"></div>
-        
+
         <div id="search-overlay" class="search-overlay-hidden">
             <button id="close-search-btn" class="close-btn">&times;</button>
             <div class="search-modal-content">
@@ -49,7 +51,7 @@
                 <button id="reset-filters-btn" type="button">Reset</button>
             </div>
         </div>
-        
+
         <div id="filter-panel">
             <div class="filter-group">
                 <label for="filter-genre-select">Genre:</label>
@@ -81,9 +83,7 @@
             <!-- Movies will be injected here -->
         </ul>
     </div>
-    
-    <!-- Remove the test button if it exists -->
-    
+
     <!-- Movie Details Modal (for adding and editing a movie) -->
     <div id="movie-details-modal" class="modal">
         <div class="modal-content">
@@ -92,20 +92,17 @@
             <form id="details-form">
                 <div id="modal-message-box"></div>
                 <div class="form-group">
-                    <label for="rating-select">Your Rating:</label>
-                    <select id="rating-select">
-                        <option value="0">Select a rating...</option>
-                        <option value="0.5">★☆☆☆☆ (0.5)</option>
-                        <option value="1">★☆☆☆☆ (1)</option>
-                        <option value="1.5">★★☆☆☆ (1.5)</option>
-                        <option value="2">★★☆☆☆ (2)</option>
-                        <option value="2.5">★★★☆☆ (2.5)</option>
-                        <option value="3">★★★☆☆ (3)</option>
-                        <option value="3.5">★★★★☆ (3.5)</option>
-                        <option value="4">★★★★☆ (4)</option>
-                        <option value="4.5">★★★★★ (4.5)</option>
-                        <option value="5">★★★★★ (5)</option>
-                    </select>
+                    <label>Your Rating:</label>
+                    <div class="custom-select-container">
+                        <div class="custom-select-trigger" id="rating-trigger">
+                            <span id="rating-text">Select a rating...</span>
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="custom-options" id="rating-options">
+                            <!-- Options will be populated by JS -->
+                        </div>
+                    </div>
+                    <input type="hidden" id="rating-value" value="0">
                 </div>
                 <div class="form-group">
                     <label for="watch-date-input">Date Watched:</label>
@@ -143,7 +140,6 @@
                     <button type="button" id="show-poster-btn">Fetch Poster</button>
                 </div>
 
-
                 <div class="modal-buttons">
                     <button type="button" id="cancel-btn">Cancel</button>
                     <button type="submit" id="save-btn">Add to List</button>
@@ -151,7 +147,7 @@
             </form>
         </div>
     </div>
-    
+
     <!-- Movie Info Modal (for viewing a watched movie) -->
     <div id="movie-info-modal" class="modal">
         <div class="modal-content">
@@ -197,7 +193,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Delete Confirmation Modal -->
     <div id="delete-confirm-modal" class="modal">
         <div class="modal-content">
@@ -210,6 +206,22 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn settings-close-btn">&times;</span>
+            <h2>Settings</h2>
+            <div class="settings-options">
+                <div class="setting-item">
+                    <label>Data Storage:</label>
+                    <button id="select-save-location-btn">Select Save Location</button>
+                    <p class="setting-description">Choose where to save your movie data file.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="movielist.js"></script>
 </body>
+
 </html>

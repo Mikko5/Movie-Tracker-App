@@ -41,7 +41,8 @@ h1 {
     color: #fff;
     letter-spacing: 1px;
     margin: 0;
-    flex-grow: 1; /* Allows title to take space */
+    flex-grow: 1;
+    /* Allows title to take space */
 }
 
 .header-actions button {
@@ -133,7 +134,8 @@ h1 {
 }
 
 #search-btn {
-    display: none; /* Hidden in the new overlay design */
+    display: none;
+    /* Hidden in the new overlay design */
 }
 
 /* --- Search Results Dropdown --- */
@@ -149,7 +151,7 @@ h1 {
     max-height: 60vh;
     overflow-y: auto;
     z-index: 1000;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .search-result-item {
@@ -224,7 +226,9 @@ h1 {
     color: var(--text-primary);
 }
 
-.controls-section select, #filter-toggle-btn, #reset-filters-btn {
+.controls-section select,
+#filter-toggle-btn,
+#reset-filters-btn {
     padding: 9px 15px;
     background-color: var(--bg-panel);
     border: 1px solid var(--border-color);
@@ -235,7 +239,9 @@ h1 {
     transition: all 0.3s ease;
 }
 
-.controls-section select:hover, #filter-toggle-btn:hover, #reset-filters-btn:hover {
+.controls-section select:hover,
+#filter-toggle-btn:hover,
+#reset-filters-btn:hover {
     border-color: var(--text-primary);
 }
 
@@ -300,7 +306,7 @@ h1 {
     text-align: left;
 }
 
- .movie-card-title {
+.movie-card-title {
     font-size: 1rem;
     font-weight: 500;
     color: #fff;
@@ -315,7 +321,7 @@ h1 {
     margin-top: 5px;
 }
 
- .movie-card-year {
+.movie-card-year {
     font-size: 0.85rem;
     color: var(--text-secondary);
     margin: 0 0 8px 0px;
@@ -324,9 +330,32 @@ h1 {
 
 /* --- Rating Stars --- */
 .rating-stars-card {
-    color: var(--accent-green);
     font-size: 1.2rem;
     letter-spacing: 1px;
+    display: inline-flex;
+}
+
+.rating-star-card {
+    position: relative;
+    display: inline-block;
+    color: var(--text-secondary);
+    /* Default empty color */
+}
+
+.rating-star-card.filled {
+    color: var(--accent-green);
+}
+
+.rating-star-card.half {
+    background: linear-gradient(to right, var(--accent-green) 50%, var(--text-secondary) 50%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+}
+
+.rating-star-card.empty {
+    color: var(--text-secondary);
 }
 
 /* --- Message Box --- */
@@ -342,7 +371,7 @@ h1 {
     z-index: 2000;
     display: none;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 #message-box.success {
@@ -433,7 +462,7 @@ h1 {
     transition: all 0.3s ease;
 }
 
-#details-form input:focus, 
+#details-form input:focus,
 #details-form select:focus,
 #details-form textarea:focus {
     outline: none;
@@ -511,19 +540,7 @@ h1 {
     color: #fff;
 }
 
-#cancel-btn:hover {
-    filter: brightness(1.2);
-}
-
-/* --- Info Modal --- */
-#movie-info-modal .modal-content {
-    max-width: 650px;
-}
-
-#info-modal-title {
-    font-size: 2rem;
-    line-height: 1.2;
-    font-weight: 600;
+font-weight: 600;
 }
 
 .info-grid {
@@ -577,18 +594,46 @@ h1 {
     color: #fff;
 }
 
-#delete-btn { background-color: #e5484d; border-color: #e5484d; }
-#delete-btn:hover { filter: brightness(1.1); }
+#delete-btn {
+    background-color: #e5484d;
+    border-color: #e5484d;
+}
 
-#imdb-btn { background-color: #f5c518; color: black; border-color: #f5c518; }
-#imdb-btn:hover { filter: brightness(1.1); }
+#delete-btn:hover {
+    filter: brightness(1.1);
+}
+
+#imdb-btn {
+    background-color: #f5c518;
+    color: black;
+    border-color: #f5c518;
+}
+
+#imdb-btn:hover {
+    filter: brightness(1.1);
+}
+
 /* Style Letterboxd button with Letterboxd brand color */
-#letterboxd-btn { background-color: #00C8AA; color: var(--bg-dark); border-color: #00C8AA; }
-#letterboxd-btn:hover { filter: brightness(1.1); }
+#letterboxd-btn {
+    background-color: #00C8AA;
+    color: var(--bg-dark);
+    border-color: #00C8AA;
+}
+
+#letterboxd-btn:hover {
+    filter: brightness(1.1);
+}
 
 /* Style Edit button with blue color */
-#edit-btn { background-color: #1e90ff; color: #fff; border-color: #1e90ff; }
-#edit-btn:hover { filter: brightness(1.1); }
+#edit-btn {
+    background-color: #1e90ff;
+    color: #fff;
+    border-color: #1e90ff;
+}
+
+#edit-btn:hover {
+    filter: brightness(1.1);
+}
 
 /* --- Delete Confirmation Modal --- */
 #delete-confirm-modal .modal-content {
@@ -607,6 +652,7 @@ h1 {
     background-color: #e5484d;
     color: white;
 }
+
 #cancel-delete-btn {
     background-color: var(--border-color);
     color: white;
@@ -651,4 +697,332 @@ select:active {
 select option {
     background-color: var(--bg-panel);
     color: var(--text-primary);
+}
+
+/* --- Settings Modal --- */
+.settings-options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.setting-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.setting-item label {
+    font-weight: 600;
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.setting-description {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+#select-save-location-btn {
+    align-self: flex-start;
+    padding: 10px 20px;
+    background-color: var(--bg-panel);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px 30px;
+    margin-bottom: 30px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 25px;
+    margin-top: 25px;
+}
+
+.info-item strong {
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.info-item p {
+    margin: 0;
+    font-size: 1rem;
+    color: #fff;
+}
+
+.info-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 30px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 25px;
+}
+
+.info-buttons button {
+    padding: 10px 22px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: var(--bg-panel);
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+.info-buttons button:hover {
+    border-color: #fff;
+    color: #fff;
+}
+
+#delete-btn {
+    background-color: #e5484d;
+    border-color: #e5484d;
+}
+
+#delete-btn:hover {
+    filter: brightness(1.1);
+}
+
+#imdb-btn {
+    background-color: #f5c518;
+    color: black;
+    border-color: #f5c518;
+}
+
+#imdb-btn:hover {
+    filter: brightness(1.1);
+}
+
+/* Style Letterboxd button with Letterboxd brand color */
+#letterboxd-btn {
+    background-color: #00C8AA;
+    color: var(--bg-dark);
+    border-color: #00C8AA;
+}
+
+#letterboxd-btn:hover {
+    filter: brightness(1.1);
+}
+
+/* Style Edit button with blue color */
+#edit-btn {
+    background-color: #1e90ff;
+    color: #fff;
+    border-color: #1e90ff;
+}
+
+#edit-btn:hover {
+    filter: brightness(1.1);
+}
+
+/* --- Delete Confirmation Modal --- */
+#delete-confirm-modal .modal-content {
+    max-width: 450px;
+    text-align: center;
+}
+
+#delete-confirm-modal p {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    color: #fff;
+    line-height: 1.6;
+}
+
+#confirm-delete-btn {
+    background-color: #e5484d;
+    color: white;
+}
+
+#cancel-delete-btn {
+    background-color: var(--border-color);
+    color: white;
+}
+
+/* --- Scrollbar styles --- */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+select,
+select:focus,
+select:active {
+    background-color: var(--bg-panel);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 1rem;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    width: 100%;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+select option {
+    background-color: var(--bg-panel);
+    color: var(--text-primary);
+}
+
+/* --- Settings Modal --- */
+.settings-options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.setting-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.setting-item label {
+    font-weight: 600;
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.setting-description {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+#select-save-location-btn {
+    align-self: flex-start;
+    padding: 10px 20px;
+    background-color: var(--bg-panel);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#select-save-location-btn:hover {
+    background-color: var(--border-color);
+    color: #fff;
+}
+
+/* --- Custom Rating Dropdown --- */
+.custom-select-container {
+    position: relative;
+    user-select: none;
+    width: 100%;
+}
+
+.custom-select-trigger {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 1rem;
+    font-family: var(--font-main);
+    transition: all 0.3s ease;
+}
+
+.custom-select-trigger:hover {
+    border-color: var(--accent-green);
+}
+
+.custom-options {
+    position: absolute;
+    display: block;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-15px);
+    transition: all 0.2s ease;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.custom-select-container.open .custom-options {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+    transform: translateY(0);
+}
+
+.custom-option {
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-primary);
+}
+
+.custom-option:hover {
+    background-color: var(--hover-bg);
+}
+
+.custom-option.selected {
+    background-color: var(--accent-green);
+    color: var(--bg-dark);
+}
+
+.custom-option .rating-stars-card {
+    font-size: 1rem;
+}
+
+.arrow {
+    font-size: 0.8rem;
+    transition: transform 0.2s;
+}
+
+.custom-select-container.open .arrow {
+    transform: rotate(180deg);
 }

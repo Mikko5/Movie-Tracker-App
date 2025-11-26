@@ -7,14 +7,22 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 // Add this block for auto-reloading
 try {
   require('electron-reloader')(module);
-} catch (_) {}
+} catch (_) { }
 
 // Get the saved path from user data or use default
 const getUserDataPath = () => {
+  // In development, always use the local dev JSON file
+  if (process.env.NODE_ENV === 'development') {
+    return path.join(__dirname, '..', 'movie-data.dev.json');
+  }
+
+  // In production, check for a user-defined path
   const savedPath = path.join(app.getPath('userData'), 'savedPath.txt');
   if (fs.existsSync(savedPath)) {
     return fs.readFileSync(savedPath, 'utf8');
   }
+
+  // Default production path
   return path.join(__dirname, '..', 'movie-data.json');
 };
 
@@ -22,37 +30,40 @@ let jsonPath = getUserDataPath();
 
 
 function createWindow() {
-    const win = new BrowserWindow({
-        width: 1000,
-        height: 800,
-        webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
-            contextIsolation: true,
-            nodeIntegration: false
-        }
-    });
-
-    // Watch for changes in the JSON file
-    let watcher = null; 
-    function setupWatcher() {
-        if (watcher) {
-            watcher.close();
-        }
-        watcher = chokidar(jsonPath, (eventType, filename) => {
-            if (eventType === 'change') {
-                win.webContents.send('json-updated');
-            }
-        });
+  const win = new BrowserWindow({
+    width: 1000,
+    height: 800,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false
     }
-    setupWatcher();
+  });
 
-    // Update watcher when JSON path changes
-    ipcMain.on('json-path-changed', () => {
-        setupWatcher();
+  // Watch for changes in the JSON file
+  let watcher = null;
+  function setupWatcher() {
+    if (watcher) {
+      watcher.close();
+    }
+    watcher = chokidar(jsonPath, (eventType, filename) => {
+      if (eventType === 'change') {
+        win.webContents.send('json-updated');
+      }
     });
+  }
+  setupWatcher();
 
-    win.loadFile(path.join(__dirname, 'movielist.html'));
+  // Update watcher when JSON path changes
+  ipcMain.on('json-path-changed', () => {
+    setupWatcher();
+  });
+
+  win.loadFile(path.join(__dirname, 'movielist.html'));
+
+  if (process.env.NODE_ENV === 'development') {
     win.webContents.openDevTools();
+  }
 }
 
 app.whenReady().then(() => {
@@ -81,17 +92,17 @@ ipcMain.handle('select-save-location', async () => {
     filters: [{ name: 'JSON', extensions: ['json'] }],
     properties: ['showOverwriteConfirmation']
   });
-  
+
   if (!result.canceled && result.filePath) {
     const oldPath = jsonPath;
-    
+
     // Copy existing data to new location if it exists
     if (fs.existsSync(oldPath)) {
       try {
         // Copy data to new location
         const currentData = fs.readFileSync(oldPath, 'utf8');
         fs.writeFileSync(result.filePath, currentData, 'utf8');
-        
+
         // Delete the old file only after successful copy
         try {
           fs.unlinkSync(oldPath);
@@ -110,7 +121,7 @@ ipcMain.handle('select-save-location', async () => {
     // Save the new path to user data
     const savedPath = path.join(app.getPath('userData'), 'savedPath.txt');
     fs.writeFileSync(savedPath, jsonPath, 'utf8');
-    
+
     return { success: true, path: jsonPath };
   }
   return { canceled: true };
@@ -119,6 +130,11 @@ ipcMain.handle('select-save-location', async () => {
 // IPC handler to send the API key to the renderer process
 ipcMain.handle('get-api-key', async () => {
   return process.env.APIKEY;
+});
+
+// IPC handler to check if in development mode
+ipcMain.handle('is-dev', () => {
+  return process.env.NODE_ENV === 'development';
 });
 
 // Handle request to open an external link

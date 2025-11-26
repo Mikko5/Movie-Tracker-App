@@ -34,7 +34,12 @@ const detailsModal = document.getElementById('movie-details-modal');
 const detailsModalTitle = document.getElementById('modal-movie-title');
 const detailsCloseBtn = document.querySelector('.add-close-btn');
 const detailsForm = document.getElementById('details-form');
-const ratingSelect = document.getElementById('rating-select');
+// Custom Rating Dropdown Elements
+const ratingTrigger = document.getElementById('rating-trigger');
+const ratingOptions = document.getElementById('rating-options');
+const ratingValue = document.getElementById('rating-value');
+const ratingText = document.getElementById('rating-text');
+const ratingContainer = document.querySelector('.custom-select-container');
 const watchDateInput = document.getElementById('watch-date-input');
 const todayBtn = document.getElementById('today-btn');
 const rewatchCheckbox = document.getElementById('rewatch-checkbox');
@@ -67,6 +72,11 @@ const letterboxdBtn = document.getElementById('letterboxd-btn');
 const deleteConfirmModal = document.getElementById('delete-confirm-modal');
 const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
 const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+
+// Settings modal elements
+const settingsBtn = document.getElementById('settings-btn');
+const settingsModal = document.getElementById('settings-modal');
+const settingsCloseBtn = document.querySelector('.settings-close-btn');
 
 
 // TMDB API Base URLs
@@ -125,7 +135,7 @@ const loadState = async () => {
         watchedMovies = movies;
     } else {
         watchedMovies = []; // Start with an empty list if file is empty or has an error
-        if(movies.error) console.error("Error reading JSON:", movies.error);
+        if (movies.error) console.error("Error reading JSON:", movies.error);
     }
 
     // Load API key from main process
@@ -150,6 +160,18 @@ const loadState = async () => {
 
     renderFilters();
     renderMovies();
+    initCustomRatingDropdown();
+
+    // Check if in development mode
+    const isDev = await window.electronAPI.invoke('is-dev');
+    const saveLocBtn = document.getElementById('select-save-location-btn');
+    if (isDev && saveLocBtn) {
+        saveLocBtn.disabled = true;
+        saveLocBtn.textContent = 'Save Location (Fixed in Dev)';
+        saveLocBtn.title = 'Save location is hardcoded in development mode.';
+        saveLocBtn.style.opacity = '0.5';
+        saveLocBtn.style.cursor = 'not-allowed';
+    }
 };
 
 /**
@@ -161,29 +183,6 @@ const saveState = async () => {
         showMessage('Failed to save movies.', 'error');
         console.error('Error writing JSON:', result.error);
     }
-};
-
-/**
- * Renders the stars for a movie rating, returning HTML string.
- * @param {number} rating The movie's rating (0.5 to 5).
- * @param {boolean} isCard Whether to use the card-specific classes.
- * @returns {string} The HTML string for the stars.
- */
-const renderStarsHtml = (rating, isCard = false) => {
-    let starsHtml = '';
-    const roundedRating = Math.round(rating * 2) / 2;
-    const starClass = isCard ? 'rating-star-card' : 'rating-star';
-    
-    for (let i = 1; i <= 5; i++) {
-        if (roundedRating >= i) {
-            starsHtml += `<span class="${starClass}">★</span>`;
-        } else if (roundedRating === i - 0.5) {
-            starsHtml += `<span class="${starClass} half">★</span>`;
-        } else {
-            starsHtml += `<span class="${starClass}">☆</span>`;
-        }
-    }
-    return starsHtml;
 };
 
 /**
@@ -258,6 +257,100 @@ const renderFilters = () => {
 };
 
 /**
+ * Renders the stars for a movie rating, returning HTML string.
+ * @param {number} rating The movie's rating (0.5 to 5).
+ * @param {boolean} isCard Whether to use the card-specific classes.
+ * @returns {string} The HTML string for the stars.
+ */
+const renderStarsHtml = (rating, isCard = false) => {
+    let starsHtml = '';
+    const roundedRating = Math.round(rating * 2) / 2;
+    const baseClass = isCard ? 'rating-star-card' : 'rating-star';
+
+    for (let i = 1; i <= 5; i++) {
+        if (roundedRating >= i) {
+            starsHtml += `<span class="${baseClass} filled">★</span>`;
+        } else if (roundedRating === i - 0.5) {
+            starsHtml += `<span class="${baseClass} half">★</span>`;
+        } else {
+            starsHtml += `<span class="${baseClass} empty">★</span>`;
+        }
+    }
+    return starsHtml;
+};
+
+/**
+ * Selects a rating in the custom dropdown.
+ * @param {string} value The rating value.
+ * @param {string} htmlContent The HTML content to display in the trigger.
+ */
+const selectRating = (value, htmlContent) => {
+    ratingValue.value = value;
+    if (value === '0') {
+        ratingText.textContent = 'Select a rating...';
+    } else {
+        ratingText.innerHTML = htmlContent;
+    }
+    ratingContainer.classList.remove('open');
+
+    // Update selected class
+    const options = ratingOptions.querySelectorAll('.custom-option');
+    options.forEach(opt => {
+        if (opt.dataset.value === value) {
+            opt.classList.add('selected');
+        } else {
+            opt.classList.remove('selected');
+        }
+    });
+};
+
+/**
+ * Initializes the custom rating dropdown.
+ */
+const initCustomRatingDropdown = () => {
+    if (!ratingOptions) return;
+
+    // Generate options
+    ratingOptions.innerHTML = '';
+
+    // Add "Select a rating..." option (value 0)
+    const defaultOption = document.createElement('div');
+    defaultOption.classList.add('custom-option');
+    defaultOption.dataset.value = '0';
+    defaultOption.textContent = 'Select a rating...';
+    defaultOption.addEventListener('click', () => selectRating('0', 'Select a rating...'));
+    ratingOptions.appendChild(defaultOption);
+
+    // Add 0.5 to 5.0
+    for (let i = 0.5; i <= 5; i += 0.5) {
+        const option = document.createElement('div');
+        option.classList.add('custom-option');
+        option.dataset.value = i.toString();
+
+        const stars = renderStarsHtml(i, true); // Use card style for dropdown
+        option.innerHTML = `<div class="rating-stars-card">${stars}</div> <span>(${i})</span>`;
+
+        option.addEventListener('click', () => selectRating(i.toString(), option.innerHTML));
+        ratingOptions.appendChild(option);
+    }
+
+    // Toggle dropdown
+    if (ratingTrigger) {
+        ratingTrigger.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent closing immediately
+            ratingContainer.classList.toggle('open');
+        });
+    }
+
+    // Close when clicking outside
+    window.addEventListener('click', (e) => {
+        if (ratingContainer && !ratingContainer.contains(e.target)) {
+            ratingContainer.classList.remove('open');
+        }
+    });
+};
+
+/**
  * Renders the movies from the watchedMovies array to the DOM.
  */
 const renderMovies = () => {
@@ -322,12 +415,12 @@ const renderMovies = () => {
         const customPosterUrl = movie.customPoster ? `${MOVIE_LIST_IMAGE_BASE_URL}${movie.customPoster}` : null;
         const originalPosterUrl = movie.poster_path ? `${MOVIE_LIST_IMAGE_BASE_URL}${movie.poster_path}` : null;
         const placeholderUrl = `${PLACEHOLDER_BASE_URL}/300x450/303030/dcdcdc?text=${encodeURIComponent(movie.title)}`;
-    
+
 
         // Create an array of poster URLs to try in order
         const posterUrls = [customPosterUrl, originalPosterUrl, placeholderUrl].filter(Boolean);
         const img = createPosterImage(posterUrls, `Poster for ${movie.title}`)
-        
+
         movieCard.innerHTML = `
             <div class="movie-info">
                 <h3 class="movie-card-title">${movie.title}</h3>
@@ -386,13 +479,13 @@ const renderSearchResults = (results) => {
         searchResultsContainer.innerHTML = `<p style="text-align: center; color: #aaa;">No results found. Try a different title.</p>`;
         return;
     }
-    
+
     results.forEach(movie => {
         const resultItem = document.createElement('li');
         resultItem.classList.add('search-result-item');
         console.log(movie.poster_path)
         const posterUrl = movie.poster_path ? `${SEARCH_IMAGE_BASE_URL}${movie.poster_path}` : `${PLACEHOLDER_BASE_URL}/92x138/303030/dcdcdc?text=${encodeURIComponent(movie.title)}`;
-        
+
         resultItem.innerHTML = `
             <img src="${posterUrl}" alt="Poster for ${movie.title}" onerror="this.onerror=null;this.src='${PLACEHOLDER_BASE_URL}/92x138/303030/dcdcdc?text=${encodeURIComponent(movie.title)}';">
             <div class="result-info">
@@ -401,7 +494,7 @@ const renderSearchResults = (results) => {
             </div>
             <button class="add-btn" data-tmdb-id="${movie.id}">Add</button>
         `;
-        
+
         searchResultsContainer.appendChild(resultItem);
     });
 };
@@ -419,10 +512,13 @@ const openDetailsModal = (movie, entryId = null) => {
     if (entryId !== null) { // Edit mode
         detailsModalTitle.textContent = `Edit details for: ${movie.title}`;
         saveBtn.textContent = 'Save Changes';
-        
+
         const movieToEdit = watchedMovies.find(m => m.entryId === entryId);
         if (movieToEdit) {
-            ratingSelect.value = movieToEdit.userRating || "0";
+            const rating = movieToEdit.userRating || "0";
+            const stars = rating > 0 ? `<div class="rating-stars-card">${renderStarsHtml(rating, true)}</div> <span>(${rating})</span>` : 'Select a rating...';
+            selectRating(rating.toString(), stars);
+
             watchDateInput.value = movieToEdit.watchDate || '';
             rewatchCheckbox.checked = movieToEdit.isRewatch || false;
             commentInput.value = movieToEdit.comment || '';
@@ -432,7 +528,9 @@ const openDetailsModal = (movie, entryId = null) => {
     } else { // Add mode
         detailsModalTitle.textContent = `Add details for: ${movie.title}`;
         saveBtn.textContent = 'Add to List';
-        ratingSelect.value = "0";
+
+        selectRating("0", 'Select a rating...');
+
         watchDateInput.value = new Date().toISOString().split('T')[0];
         rewatchCheckbox.checked = false;
         commentInput.value = "";
@@ -484,7 +582,7 @@ const openInfoModal = (movie) => {
     } else {
         infocommentP.style.display = 'none';
     }
-    
+
     infoModal.style.display = 'block';
 };
 
@@ -584,9 +682,9 @@ async function listAllPosters(movieToAdd, tmdbId) {
         return null;
     }
     const headers = {
-    'Authorization': `Bearer ${tmdbApiKey}`
+        'Authorization': `Bearer ${tmdbApiKey}`
     };
-    try{
+    try {
         const posterResponse = await fetch(`${API_BASE_URL}/movie/${tmdbId}/images?include_image_language=null%2Cen`, { headers });
         const data = await posterResponse.json();
         if (data.posters && data.posters.length > 0) {
@@ -597,14 +695,13 @@ async function listAllPosters(movieToAdd, tmdbId) {
             movieToAdd.customPoster = randomItem.file_path
             if (customPosterInput) {
                 customPosterInput.value = randomItem.file_path;
-            }  
-    } else{
-        showMessage('No posters found for this movie.', 'error');
-    }
+            }
+        } else {
+            showMessage('No posters found for this movie.', 'error');
+        }
 
     }
-    catch(error)
-    {
+    catch (error) {
         console.error(error);
     }
 }
@@ -615,7 +712,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showPostersBtn.addEventListener('click', () => {
             if (movieToAdd && movieToAdd.id) {
                 listAllPosters(movieToAdd, movieToAdd.id)
-            }else {
+            } else {
                 showMessage('No movie selected or TMDB ID missing.', 'error');
             }
         });
@@ -798,6 +895,9 @@ window.addEventListener('click', (event) => {
     if (event.target == deleteConfirmModal) {
         deleteConfirmModal.style.display = 'none';
     }
+    if (event.target == settingsModal) {
+        settingsModal.style.display = 'none';
+    }
     if (event.target == searchOverlay) {
         searchOverlay.classList.remove('search-overlay-visible');
         searchOverlay.classList.add('search-overlay-hidden');
@@ -815,9 +915,24 @@ window.addEventListener('keydown', (event) => {
             closeInfoModal();
         } else if (deleteConfirmModal.style.display === 'block') {
             deleteConfirmModal.style.display = 'none';
+        } else if (settingsModal.style.display === 'block') {
+            settingsModal.style.display = 'none';
         }
     }
 });
+
+// Settings modal event listeners
+if (settingsBtn) {
+    settingsBtn.addEventListener('click', () => {
+        settingsModal.style.display = 'block';
+    });
+}
+
+if (settingsCloseBtn) {
+    settingsCloseBtn.addEventListener('click', () => {
+        settingsModal.style.display = 'none';
+    });
+}
 
 todayBtn.addEventListener('click', () => {
     watchDateInput.value = new Date().toISOString().split('T')[0];
@@ -825,14 +940,14 @@ todayBtn.addEventListener('click', () => {
 
 detailsForm.addEventListener('submit', (event) => {
     event.preventDefault();
-    
-    const userRating = parseFloat(ratingSelect.value);
+
+    const userRating = parseFloat(ratingValue.value);
     const watchDate = watchDateInput.value;
     const isRewatch = rewatchCheckbox.checked;
     const comment = commentInput.value.trim();
     const format = formatInput.value.trim();
     const customPoster = customPosterInput.value.trim();
-    
+
     if (userRating === 0) {
         showDetailsModalMessage('Please provide a rating.');
         return;
@@ -849,7 +964,7 @@ detailsForm.addEventListener('submit', (event) => {
     movieToAdd.comment = comment;
     movieToAdd.format = format;
     movieToAdd.customPoster = customPoster
-    
+
     if (currentEntryId !== null) { // Edit mode
         const index = watchedMovies.findIndex(m => m.entryId === currentEntryId);
         if (index > -1) {
@@ -860,11 +975,11 @@ detailsForm.addEventListener('submit', (event) => {
         watchedMovies.push(movieToAdd);
         showMessage(`${movieToAdd.title} added successfully!`, 'success');
     }
-    
+
     saveState();
     renderFilters();
     renderMovies();
-    
+
     closeDetailsModal();
     searchInput.value = '';
     renderSearchResults([]);
@@ -886,7 +1001,7 @@ window.electronAPI.onJsonUpdated(() => {
 });
 
 // Initial load
-window.onload = function() {
+window.onload = function () {
     loadState();
     // Reset filters logic
     const resetFiltersBtn = document.getElementById('reset-filters-btn');
