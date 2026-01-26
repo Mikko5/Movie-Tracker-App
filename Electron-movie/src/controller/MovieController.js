@@ -6,6 +6,7 @@ import * as MovieModel from '../model/MovieModel.js';
 import * as ApiService from '../model/ApiService.js';
 import * as MovieListView from '../view/MovieListView.js';
 import * as ModalView from '../view/ModalView.js';
+import * as PosterGridView from '../view/PosterGridView.js';
 import { showMessage, showDetailsModalMessage, initCustomRatingDropdown } from '../view/UIHelpers.js';
 import * as FilterController from './FilterController.js';
 import * as SearchController from './SearchController.js';
@@ -277,14 +278,17 @@ const handleWindowClick = (event) => {
  */
 const handleEscapeKey = (event) => {
     if (event.key === 'Escape') {
-        if (ModalView.isSearchOverlayVisible()) {
+        // Check poster modal first (it appears on top of details modal)
+        if (PosterGridView.isPosterModalVisible()) {
+            PosterGridView.closePosterModal();
+        } else if (ModalView.isSearchOverlayVisible()) {
             ModalView.hideSearchOverlay();
+        } else if (ModalView.isDeleteConfirmModalVisible()) {
+            ModalView.hideDeleteConfirmModal();
         } else if (ModalView.isDetailsModalVisible()) {
             ModalView.closeDetailsModal();
         } else if (ModalView.isInfoModalVisible()) {
             ModalView.closeInfoModal();
-        } else if (ModalView.isDeleteConfirmModalVisible()) {
-            ModalView.hideDeleteConfirmModal();
         } else if (ModalView.isSettingsModalVisible()) {
             ModalView.hideSettingsModal();
         }
@@ -303,15 +307,17 @@ const handleSelectSaveLocation = async () => {
 };
 
 /**
- * Handles show posters button click
+ * Handles show posters button click - opens poster grid
  */
 const handleShowPosters = async () => {
     const movieToAdd = MovieModel.getMovieToAdd();
     if (movieToAdd && movieToAdd.id) {
-        const posterPath = await ApiService.listAllPosters(movieToAdd.id, showMessage);
-        if (posterPath) {
-            movieToAdd.customPoster = posterPath;
-            ModalView.setCustomPosterInput(posterPath);
+        const posters = await ApiService.getAllPosters(movieToAdd.id, showMessage);
+        if (posters && posters.length > 0) {
+            PosterGridView.openPosterModal(posters, (selectedPath) => {
+                movieToAdd.customPoster = selectedPath;
+                ModalView.setCustomPosterInput(selectedPath);
+            });
         }
     } else {
         showMessage('No movie selected or TMDB ID missing.', 'error');

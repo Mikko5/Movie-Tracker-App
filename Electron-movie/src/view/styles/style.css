@@ -540,9 +540,6 @@ h1 {
     color: #fff;
 }
 
-font-weight: 600;
-}
-
 .info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -1025,4 +1022,45 @@ select option {
 
 .custom-select-container.open .arrow {
     transform: rotate(180deg);
+}
+
+/* --- Poster Selection Modal --- */
+.poster-modal-content {
+    max-width: 75%;
+    width: 75%;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.poster-modal-content h2 {
+    margin-bottom: 20px;
+}
+
+.poster-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    overflow-y: auto;
+    max-height: 60vh;
+    padding: 5px;
+}
+
+.poster-item {
+    cursor: pointer;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.poster-item:hover {
+    border-color: var(--accent-green);
+    transform: scale(1.05);
+}
+
+.poster-item img {
+    width: 100%;
+    height: auto;
+    display: block;
 }

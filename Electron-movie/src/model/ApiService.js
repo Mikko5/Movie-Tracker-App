@@ -105,11 +105,11 @@ export const getMovieDetails = async (tmdbId, showMessage) => {
  * Fetches all available posters for a movie
  * @param {number} tmdbId - The TMDB ID of the movie
  * @param {Function} showMessage - Callback to display error messages
- * @returns {Promise<string|null>} A random poster path or null on failure
+ * @returns {Promise<Array|null>} Array of poster paths or null on failure
  */
-export const listAllPosters = async (tmdbId, showMessage) => {
+export const getAllPosters = async (tmdbId, showMessage) => {
     if (!tmdbApiKey) {
-        showMessage('TMDB API Key not loaded. Cannot fetch movie details.', 'error');
+        showMessage('TMDB API Key not loaded. Cannot fetch posters.', 'error');
         return null;
     }
     const headers = {
@@ -119,8 +119,7 @@ export const listAllPosters = async (tmdbId, showMessage) => {
         const posterResponse = await fetch(`${API_BASE_URL}/movie/${tmdbId}/images?include_image_language=null%2Cen`, { headers });
         const data = await posterResponse.json();
         if (data.posters && data.posters.length > 0) {
-            const randomItem = data.posters[Math.floor(Math.random() * data.posters.length)];
-            return randomItem.file_path;
+            return data.posters.map(p => p.file_path);
         } else {
             showMessage('No posters found for this movie.', 'error');
             return null;
@@ -129,4 +128,18 @@ export const listAllPosters = async (tmdbId, showMessage) => {
         console.error(error);
         return null;
     }
+};
+
+/**
+ * Fetches a random poster for a movie (legacy function)
+ * @param {number} tmdbId - The TMDB ID of the movie
+ * @param {Function} showMessage - Callback to display error messages
+ * @returns {Promise<string|null>} A random poster path or null on failure
+ */
+export const listAllPosters = async (tmdbId, showMessage) => {
+    const posters = await getAllPosters(tmdbId, showMessage);
+    if (posters && posters.length > 0) {
+        return posters[Math.floor(Math.random() * posters.length)];
+    }
+    return null;
 };

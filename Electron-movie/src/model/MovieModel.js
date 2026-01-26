@@ -5,7 +5,7 @@
 // API Base URLs
 export const API_BASE_URL = 'https://api.themoviedb.org/3';
 export const SEARCH_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w92';
-export const MOVIE_LIST_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w300';
+export const MOVIE_LIST_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w342';
 export const PLACEHOLDER_BASE_URL = 'https://placehold.co';
 
 // State

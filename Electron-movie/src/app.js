@@ -7,6 +7,7 @@ import * as ApiService from './model/ApiService.js';
 import * as UIHelpers from './view/UIHelpers.js';
 import * as MovieListView from './view/MovieListView.js';
 import * as ModalView from './view/ModalView.js';
+import * as PosterGridView from './view/PosterGridView.js';
 import * as MovieController from './controller/MovieController.js';
 import * as SearchController from './controller/SearchController.js';
 import * as FilterController from './controller/FilterController.js';
@@ -91,7 +92,12 @@ const getDOMElements = () => {
         settingsBtn: document.getElementById('settings-btn'),
         settingsModal: document.getElementById('settings-modal'),
         settingsCloseBtn: document.querySelector('.settings-close-btn'),
-        selectSaveLocationBtn: document.getElementById('select-save-location-btn')
+        selectSaveLocationBtn: document.getElementById('select-save-location-btn'),
+
+        // Poster selection modal
+        posterModal: document.getElementById('poster-modal'),
+        posterGrid: document.getElementById('poster-grid'),
+        posterCloseBtn: document.querySelector('.poster-close-btn')
     };
 };
 
@@ -105,6 +111,7 @@ const initApp = () => {
     UIHelpers.initUIHelpers(elements);
     MovieListView.initMovieListView(elements);
     ModalView.initModalView(elements);
+    PosterGridView.initPosterGridView(elements);
     MovieController.initMovieController(elements);
     SearchController.initSearchController(elements);
     FilterController.initFilterController(elements);
