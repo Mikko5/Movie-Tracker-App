@@ -2,20 +2,21 @@
 
 ## Table of Contents
 1. [Overview & Purpose](#overview--purpose)  
-2. [How It Works (High-Level)](#how-it-works-high-level)  
-3. [Setup & Installation](#setup--installation)  
-4. [Running the Application](#running-the-application)
-5. [Usage Examples](#usage-examples)  
-6. [Key Modules & Functions](#key-modules--functions)  
-7. [Data Flow & Dependencies](#data-flow--dependencies)  
-8. [Error Handling & Edge Cases](#error-handling--edge-cases)  
-9. [Customization & Extension](#customization--extension)  
-10. [Known Limitations & Future Improvements](#known-limitations--future-improvements)
+2. [Architecture](#architecture)
+3. [Project Structure](#project-structure)
+4. [Setup & Installation](#setup--installation)  
+5. [Running the Application](#running-the-application)
+6. [Usage Examples](#usage-examples)  
+7. [Key Modules & Functions](#key-modules--functions)  
+8. [Data Flow & Dependencies](#data-flow--dependencies)  
+9. [Error Handling & Edge Cases](#error-handling--edge-cases)  
+10. [Customization & Extension](#customization--extension)  
+11. [Known Limitations & Future Improvements](#known-limitations--future-improvements)
 
 ---
 
 ## Overview & Purpose  
-This Electron-based application helps you build and maintain a personal “watched movies” list:
+This Electron-based application helps you build and maintain a personal "watched movies" list:
 
 - Persist movie data locally in a JSON file  
 - Search The Movie Database (TMDB) for titles  
@@ -26,21 +27,100 @@ This Electron-based application helps you build and maintain a personal “watch
 
 ---
 
-## How It Works (High-Level)  
+## Architecture
 
-1. **Electron Shell**  
-   - **Main Process** (`src/main.js`): Window creation, IPC channels for JSON I/O and API key.  
-   - **Preload Script** (`src/preload.js`): Secures IPC exposure via `contextBridge`.  
+The application follows a **Model-View-Controller (MVC)** architecture for clean separation of concerns:
 
-2. **Renderer**  
-   - **HTML** (`src/movielist.html`): UI skeleton (movie grid, modals, filters).  
-   - **CSS** (`src/style.css`): Dark “Letterboxd-style” theme and responsive layout.  
-   - **JavaScript** (`src/movielist.js`): State loading, rendering, TMDB API integration, modal handling, JSON persistence.  
+```mermaid
+graph TB
+    subgraph Core["Core (Electron)"]
+        Main["main.js<br/>Window & IPC"]
+        Preload["preload.js<br/>Context Bridge"]
+    end
 
-3. **Data Storage**  
-   - **Production**: `movie-data.json` (or user-selected location).
-   - **Development**: `movie-data.dev.json` (fixed location for safety).
-   - Each entry includes TMDB IDs, title, poster path, release date, runtime, genres, director, user rating & watch info.  
+    subgraph Model["Model Layer"]
+        MovieModel["MovieModel.js<br/>State & CRUD"]
+        ApiService["ApiService.js<br/>TMDB API"]
+    end
+
+    subgraph View["View Layer"]
+        UIHelpers["UIHelpers.js<br/>Stars, Messages"]
+        MovieListView["MovieListView.js<br/>Cards & Filters"]
+        ModalView["ModalView.js<br/>All Modals"]
+        HTML["movielist.html"]
+        CSS["style.css"]
+    end
+
+    subgraph Controller["Controller Layer"]
+        MovieController["MovieController.js<br/>Main Logic"]
+        SearchController["SearchController.js<br/>Search Flow"]
+        FilterController["FilterController.js<br/>Sort & Filter"]
+    end
+
+    App["app.js<br/>Entry Point"]
+
+    Main --> Preload
+    Preload --> App
+    App --> Model
+    App --> View
+    App --> Controller
+
+    Controller --> Model
+    Controller --> View
+    MovieController --> SearchController
+    MovieController --> FilterController
+```
+
+### How Modules Connect
+
+| Layer | Responsibility | Dependencies |
+|-------|---------------|--------------|
+| **Core** | Electron main process, IPC, file I/O | Node.js, Electron |
+| **Model** | Data state, CRUD operations, API calls | Core (via IPC) |
+| **View** | DOM rendering, UI components | Model (for constants) |
+| **Controller** | Event handling, business logic | Model, View |
+| **Entry Point** | Bootstrap & wire all modules | All layers |
+
+---
+
+## Project Structure
+
+```
+Electron-movie/
+├── .env                        # Environment variables (TMDB API key)
+├── package.json                # Node.js project manifest
+├── package-lock.json           # Dependency lock file
+├── README.md                   # This file
+│
+├── data/                       # Data files
+│   ├── movie-data.dev.json     # Development data
+│   └── movie-data.json         # Production data (created on first run)
+│
+└── src/
+    ├── app.js                  # Entry point - initializes all modules
+    │
+    ├── core/                   # Electron main process
+    │   ├── main.js             # Window creation, IPC handlers
+    │   └── preload.js          # Context bridge for secure IPC
+    │
+    ├── model/                  # Data layer
+    │   ├── MovieModel.js       # State management, CRUD, filtering
+    │   └── ApiService.js       # TMDB API integration
+    │
+    ├── view/                   # UI layer
+    │   ├── templates/
+    │   │   └── movielist.html  # Main HTML template
+    │   ├── styles/
+    │   │   └── style.css       # Dark theme stylesheet
+    │   ├── UIHelpers.js        # Messages, stars, poster images
+    │   ├── MovieListView.js    # Movie cards, filter dropdowns
+    │   └── ModalView.js        # Details, info, delete, settings modals
+    │
+    └── controller/             # Logic layer
+        ├── MovieController.js  # Main app coordination & form handling
+        ├── SearchController.js # Search input, TMDB selection
+        └── FilterController.js # Sort & filter event handling
+```
 
 ---
 
@@ -63,27 +143,24 @@ This Electron-based application helps you build and maintain a personal “watch
      ```text
      APIKEY=your_token_here
      ```
-     *(Note: The code uses `process.env.APIKEY`)*
 
 ---
 
 ## Running the Application
 
 ### Development Mode
-Use this mode for developing features or testing without affecting your real data.
-- **Command**: `npm start` (or `npm run dev`)
-- **Data File**: `movie-data.dev.json`
-- **Behavior**: The "Select Save Location" button is **disabled** to prevent accidental overwrites of your production data.
+- **Command**: `npm start`
+- **Data File**: `data/movie-data.dev.json`
+- **Behavior**: Save location is fixed to prevent accidental overwrites
 
 ```powershell
 npm start
 ```
 
 ### Production Mode
-Use this mode for your actual usage.
 - **Command**: `npm run start:prod`
-- **Data File**: `movie-data.json` (default) or your custom selected file.
-- **Behavior**: You can change the save location via Settings.
+- **Data File**: `data/movie-data.json` or custom location
+- **Behavior**: Full save location control via Settings
 
 ```powershell
 npm run start:prod
@@ -94,106 +171,127 @@ npm run start:prod
 ## Usage Examples  
 
 - **Add a Movie**  
-  1. Click the **Search** button in the header  
-  2. Type a title (after 3 characters) and select “Add”  
-  3. Fill in rating, date, format, etc., and click **Add to List**  
+  1. Click **Search** → Type a title → Click "Add"  
+  2. Fill in rating, date, format → Click **Add to List**  
 
-- **Edit an Entry**  
-  1. Click a movie card to open its info modal  
-  2. Click **Edit**  
-  3. Modify fields and **Save Changes**  
+- **Edit/Delete**  
+  1. Click a movie card → Click **Edit** or **Delete**  
 
 - **Filter & Sort**  
-  - Toggle filters panel, choose year/genre/director/format  
-  - Use sort dropdown for date or rating ascending/descending  
-
-- **Settings & Save Location**
-  - Click **Settings** in the header.
-  - **Production**: Click "Select Save Location" to choose where to store your JSON file.
-  - **Development**: This option is disabled.
+  - Toggle filters panel, choose genre/director/year/format  
+  - Use sort dropdown for date or rating  
 
 - **External Links**  
-  - Inside the info modal, click **IMDb** or **Letterboxd** to open in your browser  
+  - In info modal, click **IMDb** or **Letterboxd**  
 
 ---
 
 ## Key Modules & Functions  
 
-### src/main.js  
-- `ipcMain.handle('read-json')` — Reads & parses the appropriate JSON file.  
-- `ipcMain.handle('write-json', data)` — Writes array back to JSON.  
-- `ipcMain.handle('get-api-key')` — Loads `.env` and returns the TMDB key.  
-- `ipcMain.handle('is-dev')` — Checks if the app is running in development mode.
+### Core Layer
 
-### src/preload.js  
-- Exposes:
-  - `window.electronAPI.invoke(channel, payload)` for JSON I/O & API key.  
-  - `window.electronAPI.send(channel, url)` for external links.  
+#### `core/main.js`
+| IPC Handler | Description |
+|-------------|-------------|
+| `read-json` | Reads & parses movie data JSON |
+| `write-json` | Writes array back to JSON |
+| `get-api-key` | Returns TMDB key from `.env` |
+| `is-dev` | Checks development mode |
+| `select-save-location` | Opens file dialog for save path |
 
-### src/movielist.js  
+### Model Layer
 
-#### `loadState()` → `void`  
-- Loads `watchedMovies` from JSON and the TMDB key via IPC.  
-- Initializes filters and movie grid.  
+#### `model/MovieModel.js`
+- **State**: `watchedMovies`, `movieToAdd`, filter/sort settings
+- **CRUD**: `addMovie()`, `updateMovie()`, `deleteMovie()`, `findMovieByEntryId()`
+- **Data**: `loadState()`, `saveState()`, `getFilteredAndSortedMovies()`
 
-#### `saveState()` → `Promise<void>`  
-- Writes `watchedMovies` back to JSON file.  
+#### `model/ApiService.js`
+- `searchMoviesByTitle(query)` → TMDB search results
+- `getMovieDetails(tmdbId)` → Full movie data with director & genres
+- `listAllPosters(tmdbId)` → Available poster options
 
-#### `renderFilters()` → `void`  
-- Builds `<select>` options from watchedMovies sets (genres, directors, years, formats).  
+### View Layer
 
-#### `renderMovies()` → `void`  
-- Applies filters & sort, then populates the movie grid.  
-- Creates each card’s HTML & applies dynamic margin logic for wrapping.  
+#### `view/UIHelpers.js`
+- `showMessage()`, `showDetailsModalMessage()` → Toast notifications
+- `renderStarsHtml()` → Star rating display with half-star support
+- `createPosterImage()` → Image with fallback chain
 
-#### `searchMoviesByTitle(query: string)` → `Promise<array|null>`  
-- Calls TMDB’s `/search/movie` with Bearer header.  
-- Returns an array of results or null on error.  
+#### `view/MovieListView.js`
+- `renderMovies()` → Movie card grid
+- `renderFilters()` → Filter dropdown population
+- `renderSearchResults()` → Search result cards
 
-#### `getMovieDetails(tmdbId: number)` → `Promise<object|null>`  
-- Fetches detail & credits endpoints, extracts director & genres, assigns `entryId`.  
+#### `view/ModalView.js`
+- `openDetailsModal()`, `closeDetailsModal()` → Add/Edit modal
+- `openInfoModal()`, `closeInfoModal()` → View details modal
+- Modal state checks: `isDetailsModalVisible()`, etc.
 
-#### `renderStarsHtml(rating: number, isCard: boolean)` → `string`  
-- Returns ★/☆ HTML with half-star support.  
+### Controller Layer
+
+#### `controller/MovieController.js`
+- `loadApp()` → Bootstrap application
+- `setupEventListeners()` → Wire all event handlers
+- `refreshView()`, `refreshFiltersAndView()` → Update UI
+
+#### `controller/SearchController.js`
+- Debounced search input handling
+- Search result selection flow
+
+#### `controller/FilterController.js`
+- Sort/filter dropdown change handlers
+- Filter reset functionality
 
 ---
 
 ## Data Flow & Dependencies  
 
-1. **User Action** triggers a renderer-side event.  
-2. **Renderer** calls TMDB API or IPC to main.  
-3. **Main** handles JSON I/O or loads `.env`.  
-4. **Renderer** updates the DOM and `watchedMovies`.  
-5. **Persistence** writes JSON to disk.  
+```mermaid
+sequenceDiagram
+    participant User
+    participant Controller
+    participant Model
+    participant View
+    participant Core
 
-**Dependencies**: `electron`, `electron-reloader` (dev), `dotenv`, native `fetch`, `cross-env`.  
+    User->>Controller: Click/Input event
+    Controller->>Model: Update state or fetch data
+    Model->>Core: IPC (read/write JSON)
+    Core-->>Model: Data response
+    Model-->>Controller: Updated state
+    Controller->>View: Render updates
+    View-->>User: Updated UI
+```
+
+**Dependencies**: `electron`, `electron-reloader` (dev), `dotenv`, `cross-env`
 
 ---
 
 ## Error Handling & Edge Cases  
 
-- **Missing TMDB Key**: Disables search & shows error banner.  
-- **Empty Search Results**: Displays “No results found.”  
-- **JSON Read/Write Failure**: Logs console error & shows toast.  
-- **Form Validation**: Requires rating > 0 & watch date.  
+- **Missing TMDB Key**: Disables search & shows error banner  
+- **Empty Search Results**: Displays "No results found"  
+- **JSON Read/Write Failure**: Logs error & shows toast  
+- **Form Validation**: Requires rating > 0 & watch date  
 
 ---
 
 ## Customization & Extension  
 
-- **Theme**: Update CSS variables in `:root`.  
-- **New Filters**: Add `<select>` in HTML, extend `renderFilters()` & `renderMovies()`.  
-- **New Data Fields**: Extend `getMovieDetails()` and UI forms.  
-- **Switch to DB**: Replace JSON IPC with SQLite or IndexedDB.  
+- **Theme**: Update CSS variables in `:root`  
+- **New Filters**: Add options to `FilterController.js` and `MovieListView.js`  
+- **New Data Fields**: Extend `MovieModel.js` and modal views  
+- **Database**: Replace JSON IPC in `MovieModel.js` with SQLite/IndexedDB  
 
 ---
 
 ## Known Limitations & Future Improvements  
 
-- **Performance**: Full grid re-renders; consider virtualization.  
-- **Caching**: No offline TMDB result cache.  
-- **Validation**: Minimal duplication checks.  
-- **Accessibility**: Improve ARIA roles & keyboard focus.  
-- **Testing**: No automated tests; add Jest/Mocha.  
+- **Performance**: Consider virtualization for large collections  
+- **Caching**: No offline TMDB result cache  
+- **Validation**: Minimal duplication checks  
+- **Accessibility**: Improve ARIA roles & keyboard focus  
+- **Testing**: Add Jest/Mocha tests for modules  
 
 Enjoy maintaining your personal movie library with this Electron tracker!

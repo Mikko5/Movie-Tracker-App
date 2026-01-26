@@ -1,7 +1,7 @@
 {
   "name": "electron-movie-json-demo",
   "version": "1.0.0",
-  "main": "src/main.js",
+  "main": "src/core/main.js",
   "description": "Electron app to read, modify, and save a JSON file.",
   "scripts": {
     "start": "cross-env NODE_ENV=development electron .",
