@@ -14,11 +14,12 @@
     "imdb_id": "tt5034838",
     "director": "Adam Wingard",
     "score": 90,
-    "userRating": "3",
+    "userRating": 3,
     "watchDate": "2023-01-01",
     "format": "HBO",
     "comment": "Goede actie maar verhaal is minder",
-    "isRewatch": false
+    "isRewatch": false,
+    "customPoster": "/mO4OYC3SDN8rXzp0J3PyhaUz7tQ.jpg"
   },
   {
     "id": 567748,

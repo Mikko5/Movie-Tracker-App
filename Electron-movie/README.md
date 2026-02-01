@@ -6,12 +6,14 @@
 3. [Project Structure](#project-structure)
 4. [Setup & Installation](#setup--installation)  
 5. [Running the Application](#running-the-application)
-6. [Usage Examples](#usage-examples)  
-7. [Key Modules & Functions](#key-modules--functions)  
-8. [Data Flow & Dependencies](#data-flow--dependencies)  
-9. [Error Handling & Edge Cases](#error-handling--edge-cases)  
-10. [Customization & Extension](#customization--extension)  
-11. [Known Limitations & Future Improvements](#known-limitations--future-improvements)
+6. [Building the Application](#building-the-application)
+7. [Testing](#testing)
+8. [Usage Examples](#usage-examples)  
+9. [Key Modules & Functions](#key-modules--functions)  
+10. [Data Flow & Dependencies](#data-flow--dependencies)  
+11. [Error Handling & Edge Cases](#error-handling--edge-cases)  
+12. [Customization & Extension](#customization--extension)  
+13. [Known Limitations & Future Improvements](#known-limitations--future-improvements)
 
 ---
 
@@ -118,6 +120,7 @@ Electron-movie/
     │
     └── controller/             # Logic layer
         ├── MovieController.js  # Main app coordination & form handling
+        ├── ModalManager.js     # Stack-based modal management
         ├── SearchController.js # Search input, TMDB selection
         └── FilterController.js # Sort & filter event handling
 ```
@@ -164,6 +167,109 @@ npm start
 
 ```powershell
 npm run start:prod
+```
+
+---
+
+## Building the Application
+
+Create distributable packages using `electron-builder`:
+
+### Windows Installer
+```powershell
+npm run build
+```
+**Output**: `dist/Movie Tracker Setup x.x.x.exe` (NSIS installer)
+
+### Unpacked Build (for testing)
+```powershell
+npm run pack
+```
+**Output**: `dist/win-unpacked/` folder with standalone executable
+
+### Build Configuration
+Build settings are in `package.json`:
+```json
+{
+  "build": {
+    "appId": "com.movie.tracker",
+    "productName": "Movie Tracker",
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "directories": {
+      "output": "dist"
+    }
+  }
+}
+```
+
+> [!NOTE]
+> For custom icons, place `icon.ico` (256x256 recommended) in a `build/` folder.
+
+---
+
+## Testing
+
+The project uses **Jest** for unit testing with a test structure that mirrors the `src/` folder.
+
+### Running Tests
+
+```powershell
+npm test              # Run all tests once
+npm run test:watch    # Watch mode - auto-reruns on file changes (press q to quit)
+npm run test:coverage # Generates coverage report in coverage/ folder
+
+# Run a specific test file
+npm test -- test/model/MovieModel.test.js
+
+# Run all tests in a folder
+npm test -- test/controller/
+
+# Run tests matching a pattern
+npm test -- --testPathPattern="Controller"
+```
+
+> **Watch mode** keeps Jest running and re-runs tests automatically when you save changes - great for development.  
+> **Coverage** shows which lines of code are tested vs untested, with an HTML report you can view in a browser.
+
+### Test Structure
+
+```
+test/
+├── setup.js                    # Global mocks (electronAPI, fetch)
+├── core/
+│   ├── main.test.js           # Main process documentation tests
+│   └── preload.test.js        # IPC API shape tests
+├── model/
+│   ├── MovieModel.test.js     # CRUD, filtering, sorting tests
+│   └── ApiService.test.js     # API calls with mocked fetch
+├── controller/
+│   ├── ModalManager.test.js   # Stack push/pop tests
+│   ├── MovieController.test.js
+│   ├── SearchController.test.js
+│   └── FilterController.test.js
+└── view/
+    ├── UIHelpers.test.js      # Stars, messages, debounce
+    ├── MovieListView.test.js  # Card rendering, filters
+    ├── ModalView.test.js      # Modal show/hide
+    └── PosterGridView.test.js # Poster grid, infinite scroll
+```
+
+### Writing Tests
+
+Tests use `jest.mock()` to mock dependencies. Example:
+
+```javascript
+jest.mock('../../src/model/ApiService.js', () => ({
+    searchMoviesByTitle: jest.fn()
+}));
+
+test('search returns results', async () => {
+    ApiService.searchMoviesByTitle.mockResolvedValue([{ title: 'Test' }]);
+    // ... test code
+});
 ```
 
 ---
@@ -242,6 +348,11 @@ npm run start:prod
 #### `controller/FilterController.js`
 - Sort/filter dropdown change handlers
 - Filter reset functionality
+
+#### `controller/ModalManager.js`
+- Stack-based modal management with `push()`, `pop()`, `handleEscape()`
+- Modal registration system: `register(name, {open, close, isVisible})`
+- ESC key automatically closes topmost modal
 
 ---
 

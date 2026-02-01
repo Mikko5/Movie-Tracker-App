@@ -10,6 +10,7 @@ import * as PosterGridView from '../view/PosterGridView.js';
 import { showMessage, showDetailsModalMessage, initCustomRatingDropdown } from '../view/UIHelpers.js';
 import * as FilterController from './FilterController.js';
 import * as SearchController from './SearchController.js';
+import * as ModalManager from './ModalManager.js';
 
 // DOM element references
 let movieList = null;
@@ -75,13 +76,19 @@ export const refreshFiltersAndView = () => {
 const handleMovieSelected = (movieData) => {
     MovieModel.setMovieToAdd(movieData);
     MovieModel.setCurrentEntryId(null);
-    ModalView.openDetailsModal(movieData, null, MovieModel.getWatchedMovies());
+    ModalManager.push('details', {
+        movie: movieData,
+        entryId: null,
+        watchedMovies: MovieModel.getWatchedMovies()
+    });
 };
 
 /**
  * Sets up all event listeners
  */
 export const setupEventListeners = () => {
+    // Register all modals with the ModalManager first
+    registerModals();
     // Movie card click (event delegation)
     if (movieList) {
         movieList.addEventListener('click', (event) => {
@@ -90,7 +97,7 @@ export const setupEventListeners = () => {
                 const entryId = movieCard.dataset.entryId;
                 const movie = MovieModel.findMovieByEntryId(entryId);
                 if (movie) {
-                    ModalView.openInfoModal(movie);
+                    ModalManager.push('info', movie);
                     MovieModel.setCurrentEntryId(entryId);
                 }
             }
@@ -103,9 +110,13 @@ export const setupEventListeners = () => {
             const currentEntryId = MovieModel.getCurrentEntryId();
             const movie = MovieModel.findMovieByEntryId(currentEntryId);
             if (movie) {
-                ModalView.closeInfoModal();
+                ModalManager.pop(); // Close info modal
                 MovieModel.setMovieToAdd(movie);
-                ModalView.openDetailsModal(movie, currentEntryId, MovieModel.getWatchedMovies());
+                ModalManager.push('details', {
+                    movie: movie,
+                    entryId: currentEntryId,
+                    watchedMovies: MovieModel.getWatchedMovies()
+                });
             }
         });
     }
@@ -113,8 +124,8 @@ export const setupEventListeners = () => {
     // Delete button in info modal
     if (deleteBtn) {
         deleteBtn.addEventListener('click', () => {
-            ModalView.closeInfoModal();
-            ModalView.showDeleteConfirmModal();
+            ModalManager.pop(); // Close info modal
+            ModalManager.push('deleteConfirm');
         });
     }
 
@@ -122,36 +133,36 @@ export const setupEventListeners = () => {
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', () => {
             handleDelete();
-            ModalView.hideDeleteConfirmModal();
+            ModalManager.pop(); // Close delete confirm modal
         });
     }
 
     // Cancel delete
     if (cancelDeleteBtn) {
         cancelDeleteBtn.addEventListener('click', () => {
-            ModalView.hideDeleteConfirmModal();
+            ModalManager.pop(); // Close delete confirm modal
         });
     }
 
     // Details modal close buttons
     if (detailsCloseBtn) {
-        detailsCloseBtn.addEventListener('click', ModalView.closeDetailsModal);
+        detailsCloseBtn.addEventListener('click', () => ModalManager.pop());
     }
     if (cancelBtn) {
-        cancelBtn.addEventListener('click', ModalView.closeDetailsModal);
+        cancelBtn.addEventListener('click', () => ModalManager.pop());
     }
 
     // Info modal close button
     if (infoCloseBtn) {
-        infoCloseBtn.addEventListener('click', ModalView.closeInfoModal);
+        infoCloseBtn.addEventListener('click', () => ModalManager.pop());
     }
 
     // Settings modal
     if (settingsBtn) {
-        settingsBtn.addEventListener('click', ModalView.showSettingsModal);
+        settingsBtn.addEventListener('click', () => ModalManager.push('settings'));
     }
     if (settingsCloseBtn) {
-        settingsCloseBtn.addEventListener('click', ModalView.hideSettingsModal);
+        settingsCloseBtn.addEventListener('click', () => ModalManager.pop());
     }
 
     // Today button
@@ -273,26 +284,54 @@ const handleWindowClick = (event) => {
 };
 
 /**
- * Handles escape key for modal closing
+ * Handles escape key for modal closing - delegates to ModalManager stack
  * @param {Event} event - The keydown event
  */
 const handleEscapeKey = (event) => {
     if (event.key === 'Escape') {
-        // Check poster modal first (it appears on top of details modal)
-        if (PosterGridView.isPosterModalVisible()) {
-            PosterGridView.closePosterModal();
-        } else if (ModalView.isSearchOverlayVisible()) {
-            ModalView.hideSearchOverlay();
-        } else if (ModalView.isDeleteConfirmModalVisible()) {
-            ModalView.hideDeleteConfirmModal();
-        } else if (ModalView.isDetailsModalVisible()) {
-            ModalView.closeDetailsModal();
-        } else if (ModalView.isInfoModalVisible()) {
-            ModalView.closeInfoModal();
-        } else if (ModalView.isSettingsModalVisible()) {
-            ModalView.hideSettingsModal();
-        }
+        ModalManager.handleEscape();
     }
+};
+
+/**
+ * Register all modals with the ModalManager
+ */
+const registerModals = () => {
+    ModalManager.register('poster', {
+        open: (data) => PosterGridView.openPosterModal(data.posters, data.callback),
+        close: () => PosterGridView.closePosterModal(),
+        isVisible: () => PosterGridView.isPosterModalVisible()
+    });
+
+    ModalManager.register('search', {
+        open: () => ModalView.showSearchOverlay(),
+        close: () => ModalView.hideSearchOverlay(),
+        isVisible: () => ModalView.isSearchOverlayVisible()
+    });
+
+    ModalManager.register('deleteConfirm', {
+        open: () => ModalView.showDeleteConfirmModal(),
+        close: () => ModalView.hideDeleteConfirmModal(),
+        isVisible: () => ModalView.isDeleteConfirmModalVisible()
+    });
+
+    ModalManager.register('details', {
+        open: (data) => ModalView.openDetailsModal(data.movie, data.entryId, data.watchedMovies),
+        close: () => ModalView.closeDetailsModal(),
+        isVisible: () => ModalView.isDetailsModalVisible()
+    });
+
+    ModalManager.register('info', {
+        open: (movie) => ModalView.openInfoModal(movie),
+        close: () => ModalView.closeInfoModal(),
+        isVisible: () => ModalView.isInfoModalVisible()
+    });
+
+    ModalManager.register('settings', {
+        open: () => ModalView.showSettingsModal(),
+        close: () => ModalView.hideSettingsModal(),
+        isVisible: () => ModalView.isSettingsModalVisible()
+    });
 };
 
 /**
@@ -314,9 +353,12 @@ const handleShowPosters = async () => {
     if (movieToAdd && movieToAdd.id) {
         const posters = await ApiService.getAllPosters(movieToAdd.id, showMessage);
         if (posters && posters.length > 0) {
-            PosterGridView.openPosterModal(posters, (selectedPath) => {
-                movieToAdd.customPoster = selectedPath;
-                ModalView.setCustomPosterInput(selectedPath);
+            ModalManager.push('poster', {
+                posters: posters,
+                callback: (selectedPath) => {
+                    movieToAdd.customPoster = selectedPath;
+                    ModalView.setCustomPosterInput(selectedPath);
+                }
             });
         }
     } else {

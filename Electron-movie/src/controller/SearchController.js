@@ -6,6 +6,7 @@ import * as ApiService from '../model/ApiService.js';
 import * as MovieModel from '../model/MovieModel.js';
 import * as MovieListView from '../view/MovieListView.js';
 import * as ModalView from '../view/ModalView.js';
+import * as ModalManager from './ModalManager.js';
 import { showMessage, debounce } from '../view/UIHelpers.js';
 
 // DOM element references
@@ -65,7 +66,7 @@ export const setupSearchListeners = (onMovieSelected) => {
     // Open search overlay
     if (openSearchBtn) {
         openSearchBtn.addEventListener('click', () => {
-            ModalView.showSearchOverlay();
+            ModalManager.push('search');
             searchInput.focus();
         });
     }
@@ -73,7 +74,7 @@ export const setupSearchListeners = (onMovieSelected) => {
     // Close search overlay
     if (closeSearchBtn) {
         closeSearchBtn.addEventListener('click', () => {
-            ModalView.hideSearchOverlay();
+            ModalManager.pop();
             searchInput.value = '';
             MovieListView.renderSearchResults([], '');
         });
@@ -92,7 +93,7 @@ export const setupSearchListeners = (onMovieSelected) => {
 
                 if (movieData) {
                     // Close the search overlay
-                    ModalView.hideSearchOverlay();
+                    ModalManager.pop();
                     searchInput.value = '';
                     MovieListView.renderSearchResults([], '');
 
