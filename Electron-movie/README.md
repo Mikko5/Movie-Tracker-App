@@ -384,7 +384,7 @@ sequenceDiagram
 - **Missing TMDB Key**: Disables search & shows error banner  
 - **Empty Search Results**: Displays "No results found"  
 - **Atomic File Writing & Data Safety**: Writes data to a temporary file (`.tmp`) before performing an atomic rename, preventing file corruption on crashes  
-- **Automatic Backup & Recovery**: Maintains a persistent `.bak` backup copy of your previous save state; automatically restores from `.bak` if the primary JSON file is missing or corrupted  
+- **Automatic Backup & Recovery**: Maintains a persistent `.bak` backup copy of your previous save state. Before backing up, the app validates `movie-data.json` to prevent overwriting `.bak` if the disk file was corrupted externally. Automatically restores from `.bak` if the primary JSON file fails to parse or is missing  
 - **Form Validation**: Requires rating > 0 & watch date  
 
 

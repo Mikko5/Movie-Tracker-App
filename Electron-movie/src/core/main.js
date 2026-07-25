@@ -103,12 +103,14 @@ const writeJsonAtomic = (targetPath, data) => {
         // Step 1: Write to temporary file
         fs.writeFileSync(tempPath, jsonString, 'utf-8');
 
-        // Step 2: Create backup of current file if it exists
+        // Step 2: Create backup of current file ONLY if it exists and contains valid JSON
         if (fs.existsSync(targetPath)) {
             try {
+                const existingContent = fs.readFileSync(targetPath, 'utf-8');
+                JSON.parse(existingContent); // Ensure current file is valid JSON before backing up
                 fs.copyFileSync(targetPath, backupPath);
-            } catch (backupErr) {
-                console.warn('Failed to create backup file:', backupErr);
+            } catch (validationErr) {
+                console.warn('Existing file on disk is invalid/corrupted; preserving previous backup file:', validationErr.message);
             }
         }
 

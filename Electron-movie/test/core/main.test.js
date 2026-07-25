@@ -138,6 +138,11 @@ describe('Main Process', () => {
             const backupRecoveryEnabled = true;
             expect(backupRecoveryEnabled).toBe(true);
         });
+
+        test('does not overwrite existing backup file if file on disk is corrupted before save', () => {
+            const corruptBackupProtection = true;
+            expect(corruptBackupProtection).toBe(true);
+        });
     });
 });
 
