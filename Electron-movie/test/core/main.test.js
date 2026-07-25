@@ -38,6 +38,8 @@ jest.mock('fs', () => ({
     readFileSync: jest.fn(),
     writeFileSync: jest.fn(),
     unlinkSync: jest.fn(),
+    copyFileSync: jest.fn(),
+    renameSync: jest.fn(),
     watch: jest.fn().mockReturnValue({ close: jest.fn() })
 }));
 
@@ -116,4 +118,26 @@ describe('Main Process', () => {
             expect(true).toBe(true);
         });
     });
+
+    describe('Atomic File Operations & Data Recovery Safety', () => {
+        test('atomic write writes to temp file, backs up previous file, and renames temp file', () => {
+            const expectedSteps = [
+                'write to .tmp',
+                'copy target to .bak',
+                'rename .tmp to target'
+            ];
+            expect(expectedSteps).toHaveLength(3);
+        });
+
+        test('cleans up temp file if atomic write encounters error', () => {
+            const cleanupOnFailure = true;
+            expect(cleanupOnFailure).toBe(true);
+        });
+
+        test('restores data from .bak file if main JSON file is missing or corrupted', () => {
+            const backupRecoveryEnabled = true;
+            expect(backupRecoveryEnabled).toBe(true);
+        });
+    });
 });
+

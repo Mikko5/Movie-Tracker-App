@@ -83,6 +83,49 @@ app.on('window-all-closed', () => {
     }
 });
 
+// --- Atomic File Writing & Data Safety Helpers ---
+
+/**
+ * Writes data to a JSON file atomically to prevent data corruption.
+ * - Writes to a `.tmp` file in the target directory first.
+ * - Refreshes a `.bak` backup copy of the target file if it already exists.
+ * - Renames `.tmp` to target file atomically (which deletes `.tmp`).
+ * - Cleans up `.tmp` on write failure.
+ * @param {string} targetPath - Absolute path to destination JSON file
+ * @param {any} data - Data to serialize and save
+ */
+const writeJsonAtomic = (targetPath, data) => {
+    const tempPath = `${targetPath}.tmp`;
+    const backupPath = `${targetPath}.bak`;
+    const jsonString = JSON.stringify(data, null, 2);
+
+    try {
+        // Step 1: Write to temporary file
+        fs.writeFileSync(tempPath, jsonString, 'utf-8');
+
+        // Step 2: Create backup of current file if it exists
+        if (fs.existsSync(targetPath)) {
+            try {
+                fs.copyFileSync(targetPath, backupPath);
+            } catch (backupErr) {
+                console.warn('Failed to create backup file:', backupErr);
+            }
+        }
+
+        // Step 3: Atomically rename temp file to target path
+        fs.renameSync(tempPath, targetPath);
+        return { success: true };
+    } catch (err) {
+        // Clean up temp file on failure
+        if (fs.existsSync(tempPath)) {
+            try {
+                fs.unlinkSync(tempPath);
+            } catch (_) { }
+        }
+        throw err;
+    }
+};
+
 // --- IPC Handlers for File I/O ---
 
 // IPC handler to select save location for movie-data.json
@@ -99,13 +142,17 @@ ipcMain.handle('select-save-location', async () => {
         // Copy existing data to new location if it exists
         if (fs.existsSync(oldPath)) {
             try {
-                // Copy data to new location
+                // Read current data and atomically write to new location
                 const currentData = fs.readFileSync(oldPath, 'utf8');
-                fs.writeFileSync(result.filePath, currentData, 'utf8');
+                const parsedData = JSON.parse(currentData);
+                writeJsonAtomic(result.filePath, parsedData);
 
-                // Delete the old file only after successful copy
+                // Delete the old file (and old backup) after successful write
                 try {
                     fs.unlinkSync(oldPath);
+                    if (fs.existsSync(`${oldPath}.bak`)) {
+                        fs.unlinkSync(`${oldPath}.bak`);
+                    }
                 } catch (deleteError) {
                     console.error('Error deleting old file:', deleteError);
                     // Continue even if delete fails
@@ -114,6 +161,8 @@ ipcMain.handle('select-save-location', async () => {
                 console.error('Error copying data:', error);
                 return { error: 'Failed to copy existing data to new location' };
             }
+        } else {
+            writeJsonAtomic(result.filePath, []);
         }
 
         // Update the path only after successful copy
@@ -146,28 +195,55 @@ ipcMain.on('open-external-link', (event, url) => {
     }
 });
 
-// Reads the content of movie-data.json and returns it
+// Reads the content of movie-data.json (with backup fallback) and returns it
 ipcMain.handle('read-json', async () => {
+    const backupPath = `${jsonPath}.bak`;
+
     try {
-        // Check if the file exists, if not, create it with an empty array
+        // Check if the primary file exists; if not, check backup or create new empty file
         if (!fs.existsSync(jsonPath)) {
-            fs.writeFileSync(jsonPath, JSON.stringify([], null, 2), 'utf-8');
+            if (fs.existsSync(backupPath)) {
+                console.warn('Primary file missing, attempting restore from backup...');
+                const backupData = fs.readFileSync(backupPath, 'utf-8');
+                const parsedBackup = JSON.parse(backupData);
+                writeJsonAtomic(jsonPath, parsedBackup);
+                return parsedBackup;
+            }
+            writeJsonAtomic(jsonPath, []);
+            return [];
         }
+
         const data = fs.readFileSync(jsonPath, 'utf-8');
         return JSON.parse(data);
     } catch (err) {
-        console.error('Failed to read JSON file:', err);
+        console.error('Failed to read primary JSON file:', err);
+
+        // Attempt recovery from backup if primary JSON fails to read/parse
+        if (fs.existsSync(backupPath)) {
+            try {
+                console.warn('Attempting data recovery from backup file...');
+                const backupData = fs.readFileSync(backupPath, 'utf-8');
+                const restoredData = JSON.parse(backupData);
+                // Re-establish primary file from valid backup
+                writeJsonAtomic(jsonPath, restoredData);
+                return restoredData;
+            } catch (backupErr) {
+                console.error('Failed to read backup file:', backupErr);
+            }
+        }
+
         return { error: err.message };
     }
 });
 
-// Writes the given data to movie-data.json
+// Writes the given data to movie-data.json atomically
 ipcMain.handle('write-json', async (event, newData) => {
     try {
-        fs.writeFileSync(jsonPath, JSON.stringify(newData, null, 2), 'utf-8');
+        writeJsonAtomic(jsonPath, newData);
         return { success: true };
     } catch (err) {
         console.error('Failed to write JSON file:', err);
         return { error: err.message };
     }
 });
+

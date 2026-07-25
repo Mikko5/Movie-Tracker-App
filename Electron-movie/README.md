@@ -299,8 +299,8 @@ test('search returns results', async () => {
 #### `core/main.js`
 | IPC Handler | Description |
 |-------------|-------------|
-| `read-json` | Reads & parses movie data JSON |
-| `write-json` | Writes array back to JSON |
+| `read-json` | Reads & parses movie data JSON (with `.bak` backup auto-recovery) |
+| `write-json` | Writes movie data atomically via `.tmp` staging and updates `.bak` |
 | `get-api-key` | Returns TMDB key from `.env` |
 | `is-dev` | Checks development mode |
 | `select-save-location` | Opens file dialog for save path |
@@ -383,8 +383,10 @@ sequenceDiagram
 
 - **Missing TMDB Key**: Disables search & shows error banner  
 - **Empty Search Results**: Displays "No results found"  
-- **JSON Read/Write Failure**: Logs error & shows toast  
+- **Atomic File Writing & Data Safety**: Writes data to a temporary file (`.tmp`) before performing an atomic rename, preventing file corruption on crashes  
+- **Automatic Backup & Recovery**: Maintains a persistent `.bak` backup copy of your previous save state; automatically restores from `.bak` if the primary JSON file is missing or corrupted  
 - **Form Validation**: Requires rating > 0 & watch date  
+
 
 ---
 
