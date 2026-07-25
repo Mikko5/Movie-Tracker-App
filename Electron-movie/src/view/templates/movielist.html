@@ -226,6 +226,14 @@
                     <p class="setting-description" style="margin-top: 5px;">Required for searching movies. Stored securely on your device.</p>
                 </div>
                 <div class="setting-item" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
+                    <label>Background Color:</label>
+                    <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
+                        <input type="color" id="bg-color-picker" value="#14181C" style="cursor: pointer; padding: 0; border: none; width: 40px; height: 40px; background: none; flex-shrink: 0;">
+                        <button id="reset-bg-color-btn" style="padding: 8px 16px;">Reset Default</button>
+                    </div>
+                    <p class="setting-description" style="margin-top: 5px;">Choose a custom background color.</p>
+                </div>
+                <div class="setting-item" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
                     <label>Application Updates:</label>
                     <p id="app-version-text" class="setting-description" style="margin-bottom: 10px;">Version: Loading...</p>
                     <button id="check-update-btn">Check for Updates</button>

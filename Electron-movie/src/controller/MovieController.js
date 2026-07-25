@@ -33,6 +33,8 @@ let searchInput = null;
 let searchBtn = null;
 let showPostersBtn = null;
 let customPosterInput = null;
+let bgColorPicker = null;
+let resetBgColorBtn = null;
 let appVersionText = null;
 let checkUpdateBtn = null;
 let downloadUpdateBtn = null;
@@ -64,6 +66,8 @@ export const initMovieController = (elements) => {
     searchBtn = elements.searchBtn;
     showPostersBtn = elements.showPostersBtn;
     customPosterInput = elements.customPosterInput;
+    bgColorPicker = elements.bgColorPicker;
+    resetBgColorBtn = elements.resetBgColorBtn;
     appVersionText = elements.appVersionText;
     checkUpdateBtn = elements.checkUpdateBtn;
     downloadUpdateBtn = elements.downloadUpdateBtn;
@@ -219,6 +223,22 @@ export const setupEventListeners = () => {
     // Show posters button
     if (showPostersBtn) {
         showPostersBtn.addEventListener('click', handleShowPosters);
+    }
+
+    // Background color picker
+    if (bgColorPicker) {
+        bgColorPicker.addEventListener('input', (event) => {
+            document.body.style.backgroundColor = event.target.value;
+            localStorage.setItem('custom-bg-color', event.target.value);
+        });
+    }
+
+    if (resetBgColorBtn) {
+        resetBgColorBtn.addEventListener('click', () => {
+            document.body.style.backgroundColor = '';
+            localStorage.removeItem('custom-bg-color');
+            if (bgColorPicker) bgColorPicker.value = '#14181C';
+        });
     }
 
     // Window click for modal closing
@@ -490,6 +510,15 @@ export const loadApp = async () => {
             appVersionText.textContent = `Version: ${version}`;
         } catch (e) {
             console.error('Failed to get app version:', e);
+        }
+    }
+
+    // Load custom background color
+    const savedBgColor = localStorage.getItem('custom-bg-color');
+    if (savedBgColor) {
+        document.body.style.backgroundColor = savedBgColor;
+        if (bgColorPicker) {
+            bgColorPicker.value = savedBgColor;
         }
     }
 

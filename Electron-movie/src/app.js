@@ -95,6 +95,8 @@ const getDOMElements = () => {
         selectSaveLocationBtn: document.getElementById('select-save-location-btn'),
         apiKeyInput: document.getElementById('api-key-input'),
         saveApiKeyBtn: document.getElementById('save-api-key-btn'),
+        bgColorPicker: document.getElementById('bg-color-picker'),
+        resetBgColorBtn: document.getElementById('reset-bg-color-btn'),
         appVersionText: document.getElementById('app-version-text'),
         checkUpdateBtn: document.getElementById('check-update-btn'),
         downloadUpdateBtn: document.getElementById('download-update-btn'),

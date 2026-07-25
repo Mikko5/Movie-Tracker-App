@@ -231,6 +231,7 @@ describe('MovieController', () => {
         let detailsCloseBtn, cancelBtn, infoCloseBtn;
         let settingsBtn, settingsCloseBtn, todayBtn;
         let watchDateInput, selectSaveLocationBtn, showPostersBtn;
+        let bgColorPicker, resetBgColorBtn;
 
         beforeEach(() => {
             editBtn = document.createElement('button');
@@ -247,6 +248,9 @@ describe('MovieController', () => {
             watchDateInput.type = 'date';
             selectSaveLocationBtn = document.createElement('button');
             showPostersBtn = document.createElement('button');
+            bgColorPicker = document.createElement('input');
+            bgColorPicker.type = 'color';
+            resetBgColorBtn = document.createElement('button');
 
             MovieController.initMovieController({
                 movieList: document.createElement('div'),
@@ -264,6 +268,8 @@ describe('MovieController', () => {
                 watchDateInput,
                 selectSaveLocationBtn,
                 showPostersBtn,
+                bgColorPicker,
+                resetBgColorBtn,
                 customPosterInput: document.createElement('input')
             });
 
@@ -317,6 +323,28 @@ describe('MovieController', () => {
         test('cancel button closes modal', () => {
             cancelBtn.click();
             expect(ModalManager.pop).toHaveBeenCalled();
+        });
+
+        test('bgColorPicker input changes background color and saves to localStorage', () => {
+            const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
+            bgColorPicker.value = '#ff0000';
+            bgColorPicker.dispatchEvent(new Event('input'));
+
+            expect(document.body.style.backgroundColor).toBe('rgb(255, 0, 0)');
+            expect(setItemSpy).toHaveBeenCalledWith('custom-bg-color', '#ff0000');
+            setItemSpy.mockRestore();
+        });
+
+        test('resetBgColorBtn resets background color and removes from localStorage', () => {
+            const removeItemSpy = jest.spyOn(Storage.prototype, 'removeItem');
+            document.body.style.backgroundColor = 'rgb(255, 0, 0)';
+            
+            resetBgColorBtn.click();
+
+            expect(document.body.style.backgroundColor).toBe('');
+            expect(removeItemSpy).toHaveBeenCalledWith('custom-bg-color');
+            expect(bgColorPicker.value).toBe('#14181c'); // Browsers usually lowercase color values, original was #14181C
+            removeItemSpy.mockRestore();
         });
 
         test('info close button closes modal', () => {
