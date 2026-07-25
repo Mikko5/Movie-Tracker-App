@@ -218,6 +218,14 @@
                     <p class="setting-description">Choose where to save your movie data file.</p>
                 </div>
                 <div class="setting-item" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
+                    <label>TMDB API Key:</label>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <input type="password" id="api-key-input" placeholder="Enter your TMDB API Key" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #222; color: #fff;">
+                        <button id="save-api-key-btn" style="padding: 8px 16px;">Save Key</button>
+                    </div>
+                    <p class="setting-description" style="margin-top: 5px;">Required for searching movies. Stored securely on your device.</p>
+                </div>
+                <div class="setting-item" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
                     <label>Application Updates:</label>
                     <p id="app-version-text" class="setting-description" style="margin-bottom: 10px;">Version: Loading...</p>
                     <button id="check-update-btn">Check for Updates</button>

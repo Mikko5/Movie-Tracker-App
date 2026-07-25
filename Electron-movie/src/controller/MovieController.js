@@ -27,6 +27,8 @@ let settingsCloseBtn = null;
 let todayBtn = null;
 let watchDateInput = null;
 let selectSaveLocationBtn = null;
+let saveApiKeyBtn = null;
+let apiKeyInput = null;
 let showPostersBtn = null;
 let customPosterInput = null;
 let appVersionText = null;
@@ -54,6 +56,8 @@ export const initMovieController = (elements) => {
     todayBtn = elements.todayBtn;
     watchDateInput = elements.watchDateInput;
     selectSaveLocationBtn = elements.selectSaveLocationBtn;
+    saveApiKeyBtn = elements.saveApiKeyBtn;
+    apiKeyInput = elements.apiKeyInput;
     showPostersBtn = elements.showPostersBtn;
     customPosterInput = elements.customPosterInput;
     appVersionText = elements.appVersionText;
@@ -190,6 +194,20 @@ export const setupEventListeners = () => {
     // Save location button
     if (selectSaveLocationBtn) {
         selectSaveLocationBtn.addEventListener('click', handleSelectSaveLocation);
+    }
+
+    // Save API key button
+    if (saveApiKeyBtn && apiKeyInput) {
+        saveApiKeyBtn.addEventListener('click', async () => {
+            const newKey = apiKeyInput.value.trim();
+            const result = await window.electronAPI.invoke('set-api-key', newKey);
+            if (result.success) {
+                ApiService.setApiKey(newKey);
+                showMessage('API Key saved successfully!');
+            } else {
+                showMessage('Failed to save API Key.', true);
+            }
+        });
     }
 
     // Show posters button
@@ -443,6 +461,9 @@ export const loadApp = async () => {
     const apiKey = await MovieModel.loadState(showMessage, elements);
     if (apiKey) {
         ApiService.setApiKey(apiKey);
+        if (elements.apiKeyInput) {
+            elements.apiKeyInput.value = apiKey;
+        }
     }
 
     // Check if in development mode

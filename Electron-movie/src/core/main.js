@@ -187,7 +187,23 @@ ipcMain.handle('select-save-location', async () => {
 
 // IPC handler to send the API key to the renderer process
 ipcMain.handle('get-api-key', async () => {
-    return process.env.APIKEY;
+    const keyPath = path.join(app.getPath('userData'), 'apiKey.txt');
+    if (fs.existsSync(keyPath)) {
+        return fs.readFileSync(keyPath, 'utf8').trim();
+    }
+    return process.env.APIKEY || null;
+});
+
+// IPC handler to save the API key securely
+ipcMain.handle('set-api-key', async (event, key) => {
+    try {
+        const keyPath = path.join(app.getPath('userData'), 'apiKey.txt');
+        fs.writeFileSync(keyPath, key, 'utf8');
+        return { success: true };
+    } catch (err) {
+        console.error('Failed to save API key:', err);
+        return { error: err.message };
+    }
 });
 
 // IPC handler to check if in development mode

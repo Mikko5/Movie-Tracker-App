@@ -93,6 +93,8 @@ const getDOMElements = () => {
         settingsModal: document.getElementById('settings-modal'),
         settingsCloseBtn: document.querySelector('.settings-close-btn'),
         selectSaveLocationBtn: document.getElementById('select-save-location-btn'),
+        apiKeyInput: document.getElementById('api-key-input'),
+        saveApiKeyBtn: document.getElementById('save-api-key-btn'),
         appVersionText: document.getElementById('app-version-text'),
         checkUpdateBtn: document.getElementById('check-update-btn'),
         downloadUpdateBtn: document.getElementById('download-update-btn'),

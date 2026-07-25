@@ -141,8 +141,9 @@ Electron-movie/
    ```
 
 3. **Configure TMDB Key**  
-   - Create a file named `.env` in the project root  
-   - Add your key:
+   There are two ways to configure your TMDB API Key:
+   - **(Recommended for Production)**: Open the application, click **Settings**, and paste your API key into the "TMDB API Key" field. It will be securely saved to your user data directory (`apiKey.txt`).
+   - **(For Development)**: Create a file named `.env` in the project root and add:
      ```text
      APIKEY=your_token_here
      ```
@@ -301,7 +302,8 @@ test('search returns results', async () => {
 |-------------|-------------|
 | `read-json` | Reads & parses movie data JSON (with `.bak` backup auto-recovery) |
 | `write-json` | Writes movie data atomically via `.tmp` staging and updates `.bak` |
-| `get-api-key` | Returns TMDB key from `.env` |
+| `get-api-key` | Retrieves TMDB key from `apiKey.txt` (Settings) or `.env` |
+| `set-api-key` | Saves the TMDB key securely to the user data directory |
 | `is-dev` | Checks development mode |
 | `select-save-location` | Opens file dialog for save path |
 
@@ -385,12 +387,12 @@ This application features an end-to-end automated update pipeline using **GitHub
 
 ### CI/CD Pipeline (GitHub Actions)
 1. **Trigger**: Whenever you push code directly to the `main` branch, the `.github/workflows/release.yml` workflow takes over.
-2. **Auto-Tagging (No Code Commits!)**: The workflow finds your latest Git tag, increases the version (e.g. `v1.0.0` -> `v1.0.1`), updates the build files in memory, and pushes **only the new tag** back to GitHub. Your source code is never modified by the robot!
-3. **Publishing**: It then builds the Windows executable and publishes it as a GitHub Release attached to that new tag.
+2. **Auto-Tagging (No Code Commits!)**: The workflow finds your latest Git tag, increases the patch version (e.g., `v1.0.0` -> `v1.0.1`), updates the build files in memory, and pushes **only the new tag** back to GitHub. The GitHub token must have `contents: write` permissions to push this tag.
+3. **Publishing**: It then builds the Windows executable (`electron-builder -- -p always`) and publishes it as a GitHub Release attached to that new tag. For `electron-updater` to discover the release, `package.json` must have `"releaseType": "release"` to prevent it from being hidden as a Draft.
 
 ### How the Auto-Updater Works Functionally
 When a user launches the compiled application (Production mode), the auto-updater kicks in silently:
-1. **Background Check**: `electron-updater` reads the application's internal version (from `package.json`) and queries the GitHub Releases API for this repository. If it finds a release tag that is higher than the current app version, an update is available.
+1. **Background Check**: `electron-updater` reads the application's internal version and requests `releases.atom` from the GitHub repository. **Important:** The GitHub repository *must be Public* for `electron-updater` to access the releases without an authentication token!
 2. **IPC Communication**: The Electron Main Process (`main.js`) catches events from `electron-updater` (like `checking-for-update`, `update-available`, `download-progress`) and securely broadcasts them to the UI Window via IPC channels defined in `preload.js`.
 3. **Settings UI**: The user can open the **Settings** modal to interact with the updater:
    - **Current Version**: Displays the currently installed version.
