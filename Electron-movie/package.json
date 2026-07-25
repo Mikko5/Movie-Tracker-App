@@ -16,8 +16,7 @@
     "appId": "com.movie.tracker",
     "productName": "Movie Tracker",
     "win": {
-      "target": "nsis",
-      "icon": "build/icon.ico"
+      "target": "nsis"
     },
     "directories": {
       "output": "dist"
