@@ -147,6 +147,12 @@ Electron-movie/
      ```text
      APIKEY=your_token_here
      ```
+   
+   > **Note on TMDB Keys:** The application automatically supports **both** types of TMDB authentication tokens:
+   > 1. The short **API Key (v3)** (~32 characters)
+   > 2. The long **Read Access Token (v4)** (~200+ characters)
+   > 
+   > Simply paste whichever one you have into the Settings UI or `.env` file, and the application will dynamically format the API requests (`?api_key=` vs `Bearer`) based on the length of your key!
 
 ---
 

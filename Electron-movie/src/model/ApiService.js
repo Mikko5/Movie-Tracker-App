@@ -21,6 +21,28 @@ export const setApiKey = (key) => {
 export const getApiKey = () => tmdbApiKey;
 
 /**
+ * Prepares the URL and Headers for a TMDB request based on the key type.
+ * TMDB v3 API Keys (short) must be sent as a query parameter.
+ * TMDB v4 Read Access Tokens (long) must be sent as a Bearer token.
+ */
+const prepareAuth = (url) => {
+    let finalUrl = url;
+    let headers = {};
+    
+    if (!tmdbApiKey) return { finalUrl, headers };
+
+    if (tmdbApiKey.length > 100) {
+        // It's a v4 Read Access Token (JWT)
+        headers['Authorization'] = `Bearer ${tmdbApiKey}`;
+    } else {
+        // It's a v3 API Key
+        const separator = finalUrl.includes('?') ? '&' : '?';
+        finalUrl = `${finalUrl}${separator}api_key=${tmdbApiKey}`;
+    }
+    return { finalUrl, headers };
+};
+
+/**
  * Fetches movies from TMDB based on a search query.
  * @param {string} query The movie title to search for.
  * @param {Function} showMessage - Callback to display error messages
@@ -34,12 +56,11 @@ export const searchMoviesByTitle = async (query, showMessage) => {
     if (!query) {
         return null;
     }
-    const headers = {
-        'Authorization': `Bearer ${tmdbApiKey}`
-    };
+    
+    const { finalUrl, headers } = prepareAuth(`${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`);
+    
     try {
-        const searchUrl = `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`;
-        const searchResponse = await fetch(searchUrl, { headers });
+        const searchResponse = await fetch(finalUrl, { headers });
         if (!searchResponse.ok) {
             const errorData = await searchResponse.json();
             showMessage(`API Error: ${errorData.status_message || 'Unknown error. Check your API key.'}`, 'error');
@@ -65,13 +86,14 @@ export const getMovieDetails = async (tmdbId, showMessage) => {
         showMessage('TMDB API Key not loaded. Cannot fetch movie details.', 'error');
         return null;
     }
-    const headers = {
-        'Authorization': `Bearer ${tmdbApiKey}`
-    };
+    
+    const movieReq = prepareAuth(`${API_BASE_URL}/movie/${tmdbId}`);
+    const creditsReq = prepareAuth(`${API_BASE_URL}/movie/${tmdbId}/credits`);
+    
     try {
         const [movieResponse, creditsResponse] = await Promise.all([
-            fetch(`${API_BASE_URL}/movie/${tmdbId}`, { headers }),
-            fetch(`${API_BASE_URL}/movie/${tmdbId}/credits`, { headers })
+            fetch(movieReq.finalUrl, { headers: movieReq.headers }),
+            fetch(creditsReq.finalUrl, { headers: creditsReq.headers })
         ]);
         if (!movieResponse.ok || !creditsResponse.ok) {
             const errorData = await (movieResponse.ok ? creditsResponse : movieResponse).json();
@@ -112,11 +134,11 @@ export const getAllPosters = async (tmdbId, showMessage) => {
         showMessage('TMDB API Key not loaded. Cannot fetch posters.', 'error');
         return null;
     }
-    const headers = {
-        'Authorization': `Bearer ${tmdbApiKey}`
-    };
+    
+    const { finalUrl, headers } = prepareAuth(`${API_BASE_URL}/movie/${tmdbId}/images?include_image_language=null%2Cen`);
+    
     try {
-        const posterResponse = await fetch(`${API_BASE_URL}/movie/${tmdbId}/images?include_image_language=null%2Cen`, { headers });
+        const posterResponse = await fetch(finalUrl, { headers });
         const data = await posterResponse.json();
         if (data.posters && data.posters.length > 0) {
             return data.posters.map(p => p.file_path);

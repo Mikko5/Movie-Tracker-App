@@ -29,6 +29,8 @@ let watchDateInput = null;
 let selectSaveLocationBtn = null;
 let saveApiKeyBtn = null;
 let apiKeyInput = null;
+let searchInput = null;
+let searchBtn = null;
 let showPostersBtn = null;
 let customPosterInput = null;
 let appVersionText = null;
@@ -58,6 +60,8 @@ export const initMovieController = (elements) => {
     selectSaveLocationBtn = elements.selectSaveLocationBtn;
     saveApiKeyBtn = elements.saveApiKeyBtn;
     apiKeyInput = elements.apiKeyInput;
+    searchInput = elements.searchInput;
+    searchBtn = elements.searchBtn;
     showPostersBtn = elements.showPostersBtn;
     customPosterInput = elements.customPosterInput;
     appVersionText = elements.appVersionText;
@@ -203,6 +207,8 @@ export const setupEventListeners = () => {
             const result = await window.electronAPI.invoke('set-api-key', newKey);
             if (result.success) {
                 ApiService.setApiKey(newKey);
+                if (searchInput) searchInput.disabled = false;
+                if (searchBtn) searchBtn.disabled = false;
                 showMessage('API Key saved successfully!');
             } else {
                 showMessage('Failed to save API Key.', true);
