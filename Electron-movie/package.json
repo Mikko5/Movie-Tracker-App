@@ -21,7 +21,14 @@
     },
     "directories": {
       "output": "dist"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Mikko5",
+        "repo": "Movie-Tracker-App"
+      }
+    ]
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
@@ -37,6 +44,7 @@
   "dependencies": {
     "csv-parser": "^3.2.0",
     "dotenv": "^17.2.1",
+    "electron-updater": "^6.8.9",
     "node-fetch": "^3.3.2"
   }
 }

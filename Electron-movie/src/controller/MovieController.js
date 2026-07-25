@@ -29,6 +29,11 @@ let watchDateInput = null;
 let selectSaveLocationBtn = null;
 let showPostersBtn = null;
 let customPosterInput = null;
+let appVersionText = null;
+let checkUpdateBtn = null;
+let downloadUpdateBtn = null;
+let installUpdateBtn = null;
+let updateStatusText = null;
 
 /**
  * Initialize MovieController with DOM elements
@@ -51,6 +56,11 @@ export const initMovieController = (elements) => {
     selectSaveLocationBtn = elements.selectSaveLocationBtn;
     showPostersBtn = elements.showPostersBtn;
     customPosterInput = elements.customPosterInput;
+    appVersionText = elements.appVersionText;
+    checkUpdateBtn = elements.checkUpdateBtn;
+    downloadUpdateBtn = elements.downloadUpdateBtn;
+    installUpdateBtn = elements.installUpdateBtn;
+    updateStatusText = elements.updateStatusText;
 };
 
 /**
@@ -197,6 +207,61 @@ export const setupEventListeners = () => {
     window.electronAPI.onJsonUpdated(() => {
         loadApp();
     });
+
+    // --- Auto Updater Event Listeners ---
+    if (checkUpdateBtn) {
+        checkUpdateBtn.addEventListener('click', () => {
+            updateStatusText.textContent = 'Checking for updates...';
+            window.electronAPI.invoke('check-for-updates');
+        });
+    }
+
+    if (downloadUpdateBtn) {
+        downloadUpdateBtn.addEventListener('click', () => {
+            updateStatusText.textContent = 'Downloading update...';
+            downloadUpdateBtn.style.display = 'none';
+            window.electronAPI.invoke('download-update');
+        });
+    }
+
+    if (installUpdateBtn) {
+        installUpdateBtn.addEventListener('click', () => {
+            window.electronAPI.invoke('quit-and-install');
+        });
+    }
+
+    // Listen to updater status from main process
+    if (window.electronAPI.onUpdaterStatus) {
+        window.electronAPI.onUpdaterStatus((data) => {
+            if (!updateStatusText) return;
+
+            switch (data.status) {
+                case 'checking':
+                    updateStatusText.textContent = 'Checking for updates...';
+                    break;
+                case 'available':
+                    updateStatusText.textContent = `Update available: ${data.info.version}`;
+                    checkUpdateBtn.style.display = 'none';
+                    downloadUpdateBtn.style.display = 'inline-block';
+                    break;
+                case 'not-available':
+                    updateStatusText.textContent = 'App is up to date.';
+                    break;
+                case 'progress':
+                    const percent = data.progress.percent.toFixed(1);
+                    updateStatusText.textContent = `Downloading... ${percent}%`;
+                    break;
+                case 'downloaded':
+                    updateStatusText.textContent = 'Update downloaded and ready to install.';
+                    downloadUpdateBtn.style.display = 'none';
+                    installUpdateBtn.style.display = 'inline-block';
+                    break;
+                case 'error':
+                    updateStatusText.textContent = `Update error: ${data.error}`;
+                    break;
+            }
+        });
+    }
 
     // Setup search listeners
     SearchController.setupSearchListeners(handleMovieSelected);
@@ -389,6 +454,16 @@ export const loadApp = async () => {
         saveLocBtn.title = 'Save location is hardcoded in development mode.';
         saveLocBtn.style.opacity = '0.5';
         saveLocBtn.style.cursor = 'not-allowed';
+    }
+
+    // Fetch and display app version
+    if (appVersionText) {
+        try {
+            const version = await window.electronAPI.invoke('get-app-version');
+            appVersionText.textContent = `Version: ${version}`;
+        } catch (e) {
+            console.error('Failed to get app version:', e);
+        }
     }
 
     initCustomRatingDropdown();

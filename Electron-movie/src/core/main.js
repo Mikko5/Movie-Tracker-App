@@ -69,6 +69,13 @@ function createWindow() {
 app.whenReady().then(() => {
     createWindow();
 
+    // Automatically check for updates on startup (only in production)
+    if (process.env.NODE_ENV !== 'development') {
+        autoUpdater.checkForUpdates().catch(err => {
+            console.error('Startup update check failed:', err);
+        });
+    }
+
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow();
@@ -248,4 +255,61 @@ ipcMain.handle('write-json', async (event, newData) => {
         return { error: err.message };
     }
 });
+
+// --- Auto-Updater Configuration ---
+const { autoUpdater } = require('electron-updater');
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = true;
+
+// Helper to send updater events to renderer
+function sendUpdaterEvent(event, data) {
+    BrowserWindow.getAllWindows().forEach(win => {
+        win.webContents.send(event, data);
+    });
+}
+
+autoUpdater.on('checking-for-update', () => {
+    sendUpdaterEvent('updater-status', { status: 'checking' });
+});
+autoUpdater.on('update-available', (info) => {
+    sendUpdaterEvent('updater-status', { status: 'available', info });
+});
+autoUpdater.on('update-not-available', (info) => {
+    sendUpdaterEvent('updater-status', { status: 'not-available', info });
+});
+autoUpdater.on('error', (err) => {
+    sendUpdaterEvent('updater-status', { status: 'error', error: err.message });
+});
+autoUpdater.on('download-progress', (progressObj) => {
+    sendUpdaterEvent('updater-status', { status: 'progress', progress: progressObj });
+});
+autoUpdater.on('update-downloaded', (info) => {
+    sendUpdaterEvent('updater-status', { status: 'downloaded', info });
+});
+
+ipcMain.handle('get-app-version', () => app.getVersion());
+ipcMain.handle('check-for-updates', async () => {
+    try {
+        if (process.env.NODE_ENV === 'development') {
+            sendUpdaterEvent('updater-status', { status: 'error', error: 'Auto-update is disabled in development mode.' });
+            return;
+        }
+        await autoUpdater.checkForUpdates();
+    } catch (err) {
+        console.error('Error checking for updates:', err);
+        sendUpdaterEvent('updater-status', { status: 'error', error: err.message });
+    }
+});
+ipcMain.handle('download-update', async () => {
+    try {
+        await autoUpdater.downloadUpdate();
+    } catch (err) {
+        console.error('Error downloading update:', err);
+        sendUpdaterEvent('updater-status', { status: 'error', error: err.message });
+    }
+});
+ipcMain.handle('quit-and-install', () => {
+    autoUpdater.quitAndInstall(false, true); // (isSilent, isForceRunAfter)
+});
+
 

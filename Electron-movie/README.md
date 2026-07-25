@@ -375,7 +375,29 @@ sequenceDiagram
     View-->>User: Updated UI
 ```
 
-**Dependencies**: `electron`, `electron-reloader` (dev), `dotenv`, `cross-env`
+**Dependencies**: `electron`, `electron-updater`, `electron-reloader` (dev), `dotenv`, `cross-env`
+
+---
+
+## Automated Updates & CI/CD
+
+This application features an end-to-end automated update pipeline using **GitHub Actions** and **electron-updater**.
+
+### CI/CD Pipeline (GitHub Actions)
+1. **Trigger**: Whenever you push code directly to the `main` branch, the `.github/workflows/release.yml` workflow takes over.
+2. **Auto-Tagging (No Code Commits!)**: The workflow finds your latest Git tag, increases the version (e.g. `v1.0.0` -> `v1.0.1`), updates the build files in memory, and pushes **only the new tag** back to GitHub. Your source code is never modified by the robot!
+3. **Publishing**: It then builds the Windows executable and publishes it as a GitHub Release attached to that new tag.
+
+### How the Auto-Updater Works Functionally
+When a user launches the compiled application (Production mode), the auto-updater kicks in silently:
+1. **Background Check**: `electron-updater` reads the application's internal version (from `package.json`) and queries the GitHub Releases API for this repository. If it finds a release tag that is higher than the current app version, an update is available.
+2. **IPC Communication**: The Electron Main Process (`main.js`) catches events from `electron-updater` (like `checking-for-update`, `update-available`, `download-progress`) and securely broadcasts them to the UI Window via IPC channels defined in `preload.js`.
+3. **Settings UI**: The user can open the **Settings** modal to interact with the updater:
+   - **Current Version**: Displays the currently installed version.
+   - **Check for Updates**: Users can manually trigger a check.
+   - **Download Update**: If an update is available, a blue button appears allowing the user to begin the download in the background. Progress percentages are streamed to the UI in real-time.
+   - **Restart & Install**: Once the download completes, a green button appears. Clicking it safely quits the application, executes the downloaded installer, and automatically relaunches the updated app.
+> **Note on Development Mode**: The auto-updater is intentionally disabled when running via `npm start`. If you click "Check for Updates" in dev mode, the app will explicitly warn you that auto-updating is disabled to prevent configuration errors.
 
 ---
 
@@ -385,8 +407,8 @@ sequenceDiagram
 - **Empty Search Results**: Displays "No results found"  
 - **Atomic File Writing & Data Safety**: Writes data to a temporary file (`.tmp`) before performing an atomic rename, preventing file corruption on crashes  
 - **Automatic Backup & Recovery**: Maintains a persistent `.bak` backup copy of your previous save state. Before backing up, the app validates `movie-data.json` to prevent overwriting `.bak` if the disk file was corrupted externally. Automatically restores from `.bak` if the primary JSON file fails to parse or is missing  
+- **Auto-Updater in Development**: Update checks are disabled in development mode to prevent configuration errors.
 - **Form Validation**: Requires rating > 0 & watch date  
-
 
 ---
 
