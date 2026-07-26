@@ -229,16 +229,25 @@ export const setupEventListeners = () => {
 
     // Background color picker
     if (bgColorPicker) {
-        bgColorPicker.addEventListener('input', (event) => {
-            document.body.style.backgroundColor = event.target.value;
-            localStorage.setItem('custom-bg-color', event.target.value);
+        bgColorPicker.addEventListener('input', async (event) => {
+            const color = event.target.value;
+            document.body.style.backgroundColor = color;
+            try {
+                await window.electronAPI.invoke('set-app-settings', { customBgColor: color });
+            } catch (err) {
+                console.error('Failed to save background color:', err);
+            }
         });
     }
 
     if (resetBgColorBtn) {
-        resetBgColorBtn.addEventListener('click', () => {
+        resetBgColorBtn.addEventListener('click', async () => {
             document.body.style.backgroundColor = '';
-            localStorage.removeItem('custom-bg-color');
+            try {
+                await window.electronAPI.invoke('set-app-settings', { customBgColor: null });
+            } catch (err) {
+                console.error('Failed to reset background color:', err);
+            }
             if (bgColorPicker) bgColorPicker.value = '#14181C';
         });
     }
@@ -530,12 +539,16 @@ export const loadApp = async () => {
     }
 
     // Load custom background color
-    const savedBgColor = localStorage.getItem('custom-bg-color');
-    if (savedBgColor) {
-        document.body.style.backgroundColor = savedBgColor;
-        if (bgColorPicker) {
-            bgColorPicker.value = savedBgColor;
+    try {
+        const appSettings = await window.electronAPI.invoke('get-app-settings');
+        if (appSettings && appSettings.customBgColor) {
+            document.body.style.backgroundColor = appSettings.customBgColor;
+            if (bgColorPicker) {
+                bgColorPicker.value = appSettings.customBgColor;
+            }
         }
+    } catch (err) {
+        console.error('Failed to load custom background color:', err);
     }
 
     // Letterboxd settings loading moved to LetterboxdController

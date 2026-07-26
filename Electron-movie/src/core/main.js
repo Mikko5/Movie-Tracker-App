@@ -12,11 +12,11 @@ try {
 // Set isolated settings paths for development vs production
 if (!app.isPackaged) {
     if (process.env.NODE_ENV === 'development') {
-        app.setPath('userData', path.join(app.getPath('appData'), 'Movie Tracker Dev'));
-    } else {
-        // Simulate packaged main app settings path for start:prod
-        app.setPath('userData', path.join(app.getPath('appData'), 'Movie Tracker'));
+        // Use an isolated folder for development
+        app.setPath('userData', path.join(app.getPath('appData'), 'electron-movie-json-demo-dev'));
     }
+    // For npm run start:prod, we do NOT override the path.
+    // It will naturally use 'electron-movie-json-demo' which is what your installed Main App uses.
 }
 
 // Get the saved path from user data or use default
@@ -55,12 +55,28 @@ function createWindow() {
     function setupWatcher() {
         if (watcher) {
             watcher.close();
+            watcher = null;
         }
-        watcher = chokidar(jsonPath, (eventType, filename) => {
-            if (eventType === 'change') {
-                win.webContents.send('json-updated');
+
+        if (!fs.existsSync(jsonPath)) {
+            try {
+                const dir = path.dirname(jsonPath);
+                if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+                fs.writeFileSync(jsonPath, '[]');
+            } catch (e) {
+                console.warn('Could not initialize jsonPath:', e);
             }
-        });
+        }
+
+        try {
+            watcher = chokidar(jsonPath, (eventType, filename) => {
+                if (eventType === 'change') {
+                    win.webContents.send('json-updated');
+                }
+            });
+        } catch (e) {
+            console.warn('File watcher failed:', e.message);
+        }
     }
     setupWatcher();
 
