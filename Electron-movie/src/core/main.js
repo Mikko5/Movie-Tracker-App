@@ -9,6 +9,16 @@ try {
     require('electron-reloader')(module);
 } catch (_) { }
 
+// Set isolated settings paths for development vs production
+if (!app.isPackaged) {
+    if (process.env.NODE_ENV === 'development') {
+        app.setPath('userData', path.join(app.getPath('appData'), 'Movie Tracker Dev'));
+    } else {
+        // Simulate packaged main app settings path for start:prod
+        app.setPath('userData', path.join(app.getPath('appData'), 'Movie Tracker'));
+    }
+}
+
 // Get the saved path from user data or use default
 const getUserDataPath = () => {
     // In development, always use the local dev JSON file
@@ -355,6 +365,29 @@ ipcMain.handle('set-letterboxd-settings', async (event, settings) => {
         return { success: true };
     } catch (err) {
         console.error('Failed to save Letterboxd settings:', err);
+        return { error: err.message };
+    }
+});
+
+ipcMain.handle('get-app-settings', async () => {
+    const settingsPath = path.join(app.getPath('userData'), 'appSettings.json');
+    if (fs.existsSync(settingsPath)) {
+        try {
+            return JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        } catch (e) {
+            return {};
+        }
+    }
+    return {};
+});
+
+ipcMain.handle('set-app-settings', async (event, settings) => {
+    try {
+        const settingsPath = path.join(app.getPath('userData'), 'appSettings.json');
+        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf8');
+        return { success: true };
+    } catch (err) {
+        console.error('Failed to save app settings:', err);
         return { error: err.message };
     }
 });
