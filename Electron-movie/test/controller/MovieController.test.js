@@ -325,26 +325,34 @@ describe('MovieController', () => {
             expect(ModalManager.pop).toHaveBeenCalled();
         });
 
-        test('bgColorPicker input changes background color and saves to localStorage', () => {
-            const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
+        test('bgColorPicker input changes background color and saves to app settings', async () => {
+            const setSettingsSpy = jest.spyOn(window.electronAPI, 'invoke').mockResolvedValue({ success: true });
+            
             bgColorPicker.value = '#ff0000';
             bgColorPicker.dispatchEvent(new Event('input'));
 
+            // Wait for async handler
+            await new Promise(process.nextTick);
+
             expect(document.body.style.backgroundColor).toBe('rgb(255, 0, 0)');
-            expect(setItemSpy).toHaveBeenCalledWith('custom-bg-color', '#ff0000');
-            setItemSpy.mockRestore();
+            expect(setSettingsSpy).toHaveBeenCalledWith('set-app-settings', { customBgColor: '#ff0000' });
+            setSettingsSpy.mockRestore();
         });
 
-        test('resetBgColorBtn resets background color and removes from localStorage', () => {
-            const removeItemSpy = jest.spyOn(Storage.prototype, 'removeItem');
-            document.body.style.backgroundColor = 'rgb(255, 0, 0)';
-            
+        test('resetBgColorBtn resets background color and removes from app settings', async () => {
+            const setSettingsSpy = jest.spyOn(window.electronAPI, 'invoke').mockResolvedValue({ success: true });
+            document.body.style.backgroundColor = 'red';
+            bgColorPicker.value = '#ff0000';
+
             resetBgColorBtn.click();
 
+            // Wait for async handler
+            await new Promise(process.nextTick);
+
             expect(document.body.style.backgroundColor).toBe('');
-            expect(removeItemSpy).toHaveBeenCalledWith('custom-bg-color');
+            expect(setSettingsSpy).toHaveBeenCalledWith('set-app-settings', { customBgColor: null });
             expect(bgColorPicker.value).toBe('#14181c'); // Browsers usually lowercase color values, original was #14181C
-            removeItemSpy.mockRestore();
+            setSettingsSpy.mockRestore();
         });
 
         test('info close button closes modal', () => {

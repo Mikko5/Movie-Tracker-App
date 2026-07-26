@@ -60,7 +60,12 @@ describe('Main Process', () => {
             { channel: 'write-json', description: 'Writes movie data to JSON file' },
             { channel: 'get-api-key', description: 'Returns TMDB API key from env' },
             { channel: 'is-dev', description: 'Checks if in development mode' },
-            { channel: 'select-save-location', description: 'Opens save dialog' }
+            { channel: 'select-save-location', description: 'Opens save dialog' },
+            { channel: 'get-app-settings', description: 'Reads appSettings.json' },
+            { channel: 'set-app-settings', description: 'Writes to appSettings.json' },
+            { channel: 'get-letterboxd-settings', description: 'Reads letterboxdSettings.json' },
+            { channel: 'set-letterboxd-settings', description: 'Writes to letterboxdSettings.json' },
+            { channel: 'fetch-letterboxd-rss', description: 'Fetches Letterboxd RSS feed via main process' }
         ];
 
         test.each(expectedHandlers)(
