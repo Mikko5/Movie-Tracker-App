@@ -511,11 +511,19 @@ export const loadApp = async () => {
         saveLocBtn.style.cursor = 'not-allowed';
     }
 
-    // Fetch and display app version
+    // Fetch and display app version and setup auto-updater UI
     if (appVersionText) {
         try {
             const version = await window.electronAPI.invoke('get-app-version');
-            appVersionText.textContent = `Version: ${version}`;
+            const isPackaged = await window.electronAPI.invoke('is-packaged');
+            
+            if (!isPackaged) {
+                appVersionText.textContent = `Version: main`;
+                if (checkUpdateBtn) checkUpdateBtn.style.display = 'none';
+                if (updateStatusText) updateStatusText.textContent = 'Auto-update is disabled in development mode.';
+            } else {
+                appVersionText.textContent = `Version: ${version}`;
+            }
         } catch (e) {
             console.error('Failed to get app version:', e);
         }

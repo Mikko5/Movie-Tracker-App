@@ -211,6 +211,11 @@ ipcMain.handle('is-dev', () => {
     return process.env.NODE_ENV === 'development';
 });
 
+// IPC handler to check if app is packaged
+ipcMain.handle('is-packaged', () => {
+    return app.isPackaged;
+});
+
 // Handle request to open an external link
 ipcMain.on('open-external-link', (event, url) => {
     if (url && (url.startsWith('http:') || url.startsWith('https:'))) {
