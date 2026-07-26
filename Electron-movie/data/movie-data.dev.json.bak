@@ -44,7 +44,7 @@
   },
   {
     "id": 1368337,
-    "entryId": "68ec0058-fbb0-4a48-8591-bebb8ffd0550",
+    "entryId": "119f6941-2719-4264-b66a-cca8ad209e64",
     "title": "The Odyssey",
     "poster_path": "/5rhTDKUhPYvpdQIijFIs5VoWsON.jpg",
     "release_date": "2026-07-15",
@@ -57,10 +57,34 @@
     "director": "Christopher Nolan",
     "imdb_id": "tt33764258",
     "userRating": 4.5,
-    "watchDate": "2026-07-25",
+    "watchDate": "2026-07-22",
     "isRewatch": false,
     "comment": "",
     "format": "",
-    "customPoster": "/bDkL24ydznDVkD30r4kLmbKCkIL.jpg"
+    "customPoster": "",
+    "letterboxdSyncId": "letterboxd-review-1408366198"
+  },
+  {
+    "id": 1226863,
+    "entryId": "9a734102-0292-4160-a78c-d016136b4695",
+    "title": "The Super Mario Galaxy Movie",
+    "poster_path": "/eJGWx219ZcEMVQJhAgMiqo8tYY.jpg",
+    "release_date": "2026-04-01",
+    "runtime": 98,
+    "genres": [
+      "Family",
+      "Comedy",
+      "Adventure",
+      "Fantasy",
+      "Animation"
+    ],
+    "director": "Michael Jelenic",
+    "imdb_id": "tt28650488",
+    "userRating": 1,
+    "watchDate": "2026-07-26",
+    "isRewatch": false,
+    "comment": "",
+    "format": "",
+    "customPoster": ""
   }
 ]

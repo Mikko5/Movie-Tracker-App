@@ -11,6 +11,7 @@ import * as PosterGridView from './view/PosterGridView.js';
 import * as MovieController from './controller/MovieController.js';
 import * as SearchController from './controller/SearchController.js';
 import * as FilterController from './controller/FilterController.js';
+import * as LetterboxdController from './controller/LetterboxdController.js';
 
 /**
  * Gets all DOM element references
@@ -106,7 +107,18 @@ const getDOMElements = () => {
         // Poster selection modal
         posterModal: document.getElementById('poster-modal'),
         posterGrid: document.getElementById('poster-grid'),
-        posterCloseBtn: document.querySelector('.poster-close-btn')
+        posterCloseBtn: document.querySelector('.poster-close-btn'),
+
+        // Letterboxd Sync
+        letterboxdUsernameInput: document.getElementById('letterboxd-username-input'),
+        saveLetterboxdBtn: document.getElementById('save-letterboxd-btn'),
+        syncLetterboxdBtn: document.getElementById('sync-letterboxd-btn'),
+        letterboxdSyncStatus: document.getElementById('letterboxd-sync-status'),
+        syncConfirmModal: document.getElementById('sync-confirm-modal'),
+        syncConfirmMessage: document.getElementById('sync-confirm-message'),
+        syncMoviesList: document.getElementById('sync-movies-list'),
+        cancelSyncBtn: document.getElementById('cancel-sync-btn'),
+        confirmSyncBtn: document.getElementById('confirm-sync-btn')
     };
 };
 
@@ -124,9 +136,11 @@ const initApp = () => {
     MovieController.initMovieController(elements);
     SearchController.initSearchController(elements);
     FilterController.initFilterController(elements);
+    LetterboxdController.initLetterboxdController(elements);
 
     // Setup event listeners
     MovieController.setupEventListeners();
+    LetterboxdController.setupEventListeners();
 
     // Load the application
     MovieController.loadApp();

@@ -188,7 +188,7 @@ describe('ApiService', () => {
 
             expect(result).toBeNull();
             expect(mockShowMessage).toHaveBeenCalledWith(
-                'No posters found for this movie.',
+                'No posters found.',
                 'error'
             );
         });

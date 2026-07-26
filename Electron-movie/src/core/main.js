@@ -211,6 +211,11 @@ ipcMain.handle('is-dev', () => {
     return process.env.NODE_ENV === 'development';
 });
 
+// IPC handler to check if app is packaged
+ipcMain.handle('is-packaged', () => {
+    return app.isPackaged;
+});
+
 // Handle request to open an external link
 ipcMain.on('open-external-link', (event, url) => {
     if (url && (url.startsWith('http:') || url.startsWith('https:'))) {
@@ -328,4 +333,39 @@ ipcMain.handle('quit-and-install', () => {
     autoUpdater.quitAndInstall(false, true); // (isSilent, isForceRunAfter)
 });
 
+// --- Letterboxd Integration ---
+const { fetchLetterboxdRSS, getNewMovies } = require('./LetterboxdService');
 
+ipcMain.handle('get-letterboxd-settings', async () => {
+    const settingsPath = path.join(app.getPath('userData'), 'letterboxdSettings.json');
+    if (fs.existsSync(settingsPath)) {
+        try {
+            return JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        } catch (e) {
+            return { username: '', lastSyncId: '' };
+        }
+    }
+    return { username: '', lastSyncId: '' };
+});
+
+ipcMain.handle('set-letterboxd-settings', async (event, settings) => {
+    try {
+        const settingsPath = path.join(app.getPath('userData'), 'letterboxdSettings.json');
+        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf8');
+        return { success: true };
+    } catch (err) {
+        console.error('Failed to save Letterboxd settings:', err);
+        return { error: err.message };
+    }
+});
+
+ipcMain.handle('fetch-letterboxd-rss', async (event, username, lastSyncId) => {
+    try {
+        const rssItems = await fetchLetterboxdRSS(username);
+        const newMovies = getNewMovies(rssItems, lastSyncId);
+        return { success: true, newMovies };
+    } catch (err) {
+        console.error('Failed to fetch Letterboxd RSS via IPC:', err);
+        return { error: err.message };
+    }
+});
