@@ -1,9 +1,17 @@
 name: Build and Release
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Type of version bump'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: 'patch'
 
 jobs:
   release:
@@ -32,6 +40,8 @@ jobs:
         working-directory: Electron-movie
         shell: bash
         run: |
+          BUMP_TYPE="${{ github.event.inputs.bump_type }}"
+          
           # Find the latest tag, default to v1.0.0 if none exist
           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
           
@@ -41,9 +51,18 @@ jobs:
           # Split into parts
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION_NUM"
           
-          # Increment patch
-          NEW_PATCH=$((PATCH + 1))
-          NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+          if [ "$BUMP_TYPE" = "major" ]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif [ "$BUMP_TYPE" = "minor" ]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+          
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
           
           echo "Bumping version from $VERSION_NUM to $NEW_VERSION"
           
