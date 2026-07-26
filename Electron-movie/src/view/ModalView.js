@@ -138,7 +138,11 @@ export const openInfoModal = (movie) => {
         window.electronAPI.send('open-external-link', `https://www.imdb.com/title/${movie.imdb_id}`);
     };
     letterboxdBtn.onclick = () => {
-        window.electronAPI.send('open-external-link', `https://letterboxd.com/search/films/${encodeURIComponent(movie.title)}`);
+        if (movie.letterboxdUrl) {
+            window.electronAPI.send('open-external-link', movie.letterboxdUrl);
+        } else {
+            window.electronAPI.send('open-external-link', `https://letterboxd.com/search/films/${encodeURIComponent(movie.title)}`);
+        }
     };
 
     // Show or hide Watched On and Comments based on data

@@ -159,7 +159,8 @@ export const setupEventListeners = () => {
                             comment: '',
                             format: '',
                             customPoster: '',
-                            letterboxdSyncId: lbMovie.letterboxdId
+                            letterboxdSyncId: lbMovie.letterboxdId,
+                            letterboxdUrl: lbMovie.link
                         };
                     }
                 }
@@ -191,7 +192,8 @@ export const setupEventListeners = () => {
                         comment: '',
                         format: '',
                         customPoster: '',
-                        letterboxdSyncId: lbMovie.letterboxdId
+                        letterboxdSyncId: lbMovie.letterboxdId,
+                        letterboxdUrl: lbMovie.link
                     };
                 }
                 
