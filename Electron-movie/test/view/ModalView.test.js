@@ -107,6 +107,8 @@ describe('ModalView', () => {
         document.body.appendChild(settingsModal);
         document.body.appendChild(searchOverlay);
 
+        window.electronAPI = { send: jest.fn() };
+
         // Initialize with all required elements
         ModalView.initModalView({
             detailsModal,
@@ -202,6 +204,22 @@ describe('ModalView', () => {
 
             infoModal.style.display = 'block';
             expect(ModalView.isInfoModalVisible()).toBe(true);
+        });
+        
+        test('Letterboxd button uses letterboxdUrl if available', () => {
+            const movie = { title: 'Test', letterboxdUrl: 'https://letterboxd.com/user/film/test/' };
+            ModalView.openInfoModal(movie);
+            
+            letterboxdBtn.click();
+            expect(window.electronAPI.send).toHaveBeenCalledWith('open-external-link', 'https://letterboxd.com/user/film/test/');
+        });
+
+        test('Letterboxd button falls back to search URL if letterboxdUrl is missing', () => {
+            const movie = { title: 'Test Movie' };
+            ModalView.openInfoModal(movie);
+            
+            letterboxdBtn.click();
+            expect(window.electronAPI.send).toHaveBeenCalledWith('open-external-link', 'https://letterboxd.com/search/films/Test%20Movie');
         });
     });
 

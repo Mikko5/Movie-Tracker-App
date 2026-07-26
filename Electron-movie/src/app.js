@@ -144,6 +144,7 @@ const initApp = () => {
 
     // Load the application
     MovieController.loadApp();
+    LetterboxdController.loadLetterboxdState();
 };
 
 // Initialize when DOM is ready

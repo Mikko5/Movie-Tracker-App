@@ -80,6 +80,36 @@ describe('LetterboxdController', () => {
 
         expect(window.electronAPI.invoke).toHaveBeenCalledWith('get-letterboxd-settings');
         expect(window.electronAPI.invoke).toHaveBeenCalledWith('set-letterboxd-settings', { username: 'testuser' });
+        expect(elements.syncLetterboxdBtn.style.display).toBe('inline-block');
+    });
+
+    test('saving empty username hides sync button', async () => {
+        elements.letterboxdUsernameInput.value = '   ';
+        window.electronAPI.invoke.mockResolvedValueOnce({ username: 'olduser' }).mockResolvedValueOnce(true);
+
+        elements.saveLetterboxdBtn.click();
+
+        await new Promise(process.nextTick);
+
+        expect(window.electronAPI.invoke).toHaveBeenCalledWith('set-letterboxd-settings', { username: '' });
+        expect(elements.syncLetterboxdBtn.style.display).toBe('none');
+    });
+
+    test('loadLetterboxdState populates username and shows sync button if set', async () => {
+        window.electronAPI.invoke.mockResolvedValueOnce({ username: 'saveduser' });
+        
+        await LetterboxdController.loadLetterboxdState();
+        
+        expect(elements.letterboxdUsernameInput.value).toBe('saveduser');
+        expect(elements.syncLetterboxdBtn.style.display).toBe('inline-block');
+    });
+
+    test('loadLetterboxdState hides sync button if no username is set', async () => {
+        window.electronAPI.invoke.mockResolvedValueOnce({ username: '' });
+        
+        await LetterboxdController.loadLetterboxdState();
+        
+        expect(elements.syncLetterboxdBtn.style.display).toBe('none');
     });
 
     test('sync button shows error if no username saved', async () => {

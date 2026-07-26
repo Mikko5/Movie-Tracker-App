@@ -38,6 +38,16 @@ export const initLetterboxdController = (elements) => {
     });
 };
 
+export const loadLetterboxdState = async () => {
+    const settings = await window.electronAPI.invoke('get-letterboxd-settings');
+    if (letterboxdUsernameInput && settings.username) {
+        letterboxdUsernameInput.value = settings.username;
+        if (syncLetterboxdBtn) syncLetterboxdBtn.style.display = 'inline-block';
+    } else {
+        if (syncLetterboxdBtn) syncLetterboxdBtn.style.display = 'none';
+    }
+};
+
 export const setupEventListeners = () => {
     if (saveLetterboxdBtn && letterboxdUsernameInput) {
         saveLetterboxdBtn.addEventListener('click', async () => {
@@ -45,6 +55,11 @@ export const setupEventListeners = () => {
             const settings = await window.electronAPI.invoke('get-letterboxd-settings');
             settings.username = username;
             await window.electronAPI.invoke('set-letterboxd-settings', settings);
+            if (username) {
+                if (syncLetterboxdBtn) syncLetterboxdBtn.style.display = 'inline-block';
+            } else {
+                if (syncLetterboxdBtn) syncLetterboxdBtn.style.display = 'none';
+            }
             showMessage('Letterboxd username saved!');
         });
     }
