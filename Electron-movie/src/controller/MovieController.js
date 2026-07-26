@@ -41,6 +41,8 @@ let downloadUpdateBtn = null;
 let installUpdateBtn = null;
 let updateStatusText = null;
 
+    // Letterboxd sync elements moved to LetterboxdController
+
 /**
  * Initialize MovieController with DOM elements
  * @param {Object} elements - Object containing DOM element references
@@ -252,6 +254,8 @@ export const setupEventListeners = () => {
         loadApp();
     });
 
+    // --- Letterboxd Integration moved to LetterboxdController.js ---
+
     // --- Auto Updater Event Listeners ---
     if (checkUpdateBtn) {
         checkUpdateBtn.addEventListener('click', () => {
@@ -385,6 +389,8 @@ const handleWindowClick = (event) => {
             ModalView.hideDeleteConfirmModal();
         } else if (ModalView.isSettingsModalVisible()) {
             ModalView.hideSettingsModal();
+        } else if (syncConfirmModal && syncConfirmModal.style.display === 'block') {
+            ModalManager.pop();
         }
     }
     if (event.target === document.getElementById('search-overlay')) {
@@ -441,6 +447,8 @@ const registerModals = () => {
         close: () => ModalView.hideSettingsModal(),
         isVisible: () => ModalView.isSettingsModalVisible()
     });
+
+    // syncConfirm modal registered in LetterboxdController
 };
 
 /**
@@ -521,6 +529,8 @@ export const loadApp = async () => {
             bgColorPicker.value = savedBgColor;
         }
     }
+
+    // Letterboxd settings loading moved to LetterboxdController
 
     initCustomRatingDropdown();
     refreshFiltersAndView();

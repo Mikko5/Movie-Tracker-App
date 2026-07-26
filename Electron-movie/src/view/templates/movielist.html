@@ -226,6 +226,17 @@
                     <p class="setting-description" style="margin-top: 5px;">Required for searching movies. Stored securely on your device.</p>
                 </div>
                 <div class="setting-item" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
+                    <label>Letterboxd Integration:</label>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <input type="text" id="letterboxd-username-input" placeholder="Letterboxd Username" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #222; color: #fff;">
+                        <button id="save-letterboxd-btn" style="padding: 8px 16px;">Save Username</button>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button id="sync-letterboxd-btn" style="padding: 8px 16px; background-color: #00e054; color: #fff; width: 100%;">Sync Recent Activity</button>
+                    </div>
+                    <p class="setting-description" style="margin-top: 5px;" id="letterboxd-sync-status">Enter your username to sync recent activity.</p>
+                </div>
+                <div class="setting-item" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
                     <label>Background Color:</label>
                     <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
                         <input type="color" id="bg-color-picker" value="#14181C" style="cursor: pointer; padding: 0; border: none; width: 40px; height: 40px; background: none; flex-shrink: 0;">
@@ -251,6 +262,21 @@
             <span class="close-btn poster-close-btn">&times;</span>
             <h2>Select Poster</h2>
             <div id="poster-grid" class="poster-grid"></div>
+        </div>
+    </div>
+
+    <!-- Letterboxd Sync Confirmation Modal -->
+    <div id="sync-confirm-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <h2>Sync New Movies from Letterboxd</h2>
+            <p id="sync-confirm-message" style="margin-bottom: 15px;">Found X new movies. Add them to your local library?</p>
+            <ul id="sync-movies-list" style="max-height: 200px; overflow-y: auto; list-style-type: none; padding: 0; margin-bottom: 20px; background: #222; border-radius: 4px; padding: 10px;">
+                <!-- New movies listed here -->
+            </ul>
+            <div class="modal-buttons">
+                <button type="button" id="cancel-sync-btn">Cancel</button>
+                <button type="button" id="confirm-sync-btn" style="background-color: #00e054; color: #fff;">Confirm & Add</button>
+            </div>
         </div>
     </div>
 
