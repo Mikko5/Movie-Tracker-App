@@ -20,7 +20,7 @@ This document details the usage examples, error handling, and customization opti
 
 ## Error Handling & Edge Cases  
 
-- **Missing TMDB Key**: Disables search & shows error banner  
+- **Out-of-the-Box TMDB Proxy**: Zero-config search via dedicated Cloudflare Worker proxy (`X-App-Key` authenticated, 24h edge caching, 50% request reduction via `append_to_response=credits`)
 - **Empty Search Results**: Displays "No results found"  
 - **SQLite Database with WAL Mode**: Embedded high-performance `better-sqlite3` storage with Write-Ahead Logging (WAL) and indexed lookups  
 - **Automatic Folder Backup**: Configurable background sync with 30-second debounced inactivity cooldown to any chosen folder (local or cloud-synced), with auto-disable if the folder is deleted from disk, and option to keep or delete `movies-backup.db` on disable.

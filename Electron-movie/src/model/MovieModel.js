@@ -2,8 +2,9 @@
  * MovieModel - Handles movie data state and CRUD operations
  */
 
-// API Base URLs
-export const API_BASE_URL = 'https://api.themoviedb.org/3';
+// API Base URLs & Authentication
+export const API_BASE_URL = 'https://tmdb-proxy.movie-feed.workers.dev/3';
+export const APP_CLIENT_KEY = 'MovieTracker-Client-Secure-2026';
 export const SEARCH_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w92';
 export const MOVIE_LIST_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w342';
 export const PLACEHOLDER_BASE_URL = 'https://placehold.co';
@@ -39,15 +40,15 @@ export const setCurrentFilterYear = (year) => { currentFilterYear = year; };
 export const setCurrentFilterFormat = (format) => { currentFilterFormat = format; };
 
 /**
- * Loads movies and API key from the main process.
+ * Loads movies from the database and ensures search controls are ready.
  * @param {Function} showMessage - Callback to display messages
  * @param {Object} elements - DOM elements object
- * @returns {Promise<string|null>} The TMDB API key
+ * @returns {Promise<string|null>} The TMDB API key if present, or null
  */
 export const loadState = async (showMessage, elements) => {
     const { searchInput, searchBtn } = elements;
 
-    // Load movies from movie-data.json via IPC
+    // Load movies from database via IPC
     const movies = await window.electronAPI.invoke('read-json');
     if (movies && !movies.error) {
         watchedMovies = movies;
@@ -56,15 +57,16 @@ export const loadState = async (showMessage, elements) => {
         if (movies && movies.error) console.error("Error reading JSON:", movies.error);
     }
 
-    // Load API key from main process
-    const tmdbApiKey = await window.electronAPI.invoke('get-api-key');
-    if (!tmdbApiKey) {
-        showMessage('TMDB API Key not found. Please set it in the .env file.', 'error');
-        searchInput.disabled = true;
-        searchBtn.disabled = true;
-    } else {
-        searchInput.disabled = false;
-        searchBtn.disabled = false;
+    // Always enable search controls (routed through Cloudflare TMDB proxy)
+    if (searchInput) searchInput.disabled = false;
+    if (searchBtn) searchBtn.disabled = false;
+
+    // Optional legacy local API key check (no error displayed if omitted)
+    let tmdbApiKey = null;
+    try {
+        tmdbApiKey = await window.electronAPI.invoke('get-api-key');
+    } catch (e) {
+        // Ignored in proxy mode
     }
 
     // Reset filters on load

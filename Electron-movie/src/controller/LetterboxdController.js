@@ -137,6 +137,11 @@ export const setupEventListeners = () => {
             for (let i = newLetterboxdMovies.length - 1; i >= 0; i--) {
                 const lbMovie = newLetterboxdMovies[i];
                 
+                // Pacing: brief 150ms breather between movies to smooth API traffic
+                if (count > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 150));
+                }
+
                 // Update progress on button
                 confirmSyncBtn.textContent = `Adding (${newLetterboxdMovies.length - i}/${newLetterboxdMovies.length})...`;
                 
@@ -214,9 +219,6 @@ export const setupEventListeners = () => {
                 
                 MovieModel.addMovie(movieToAdd);
                 count++;
-
-                // Small delay to prevent TMDB rate limiting (40 req/sec max, but play it safe)
-                await new Promise(resolve => setTimeout(resolve, 200));
             }
 
             // Save state

@@ -59,19 +59,29 @@ graph TB
 ## Project Structure
 
 ```text
-Electron-movie/
-├── .env                        # Environment variables (TMDB API key)
-├── package.json                # Node.js project manifest
-├── package-lock.json           # Dependency lock file
-├── README.md                   # This file
+Movie-Tracker-App/
+├── cloudflare-worker/          # Cloudflare Worker reverse proxy package
+│   ├── package.json            # Worker npm manifest & test scripts
+│   ├── README.md               # Worker deployment & curl testing documentation
+│   ├── wrangler.toml           # Cloudflare deployment configuration
+│   ├── src/
+│   │   └── worker.js           # Production TMDB edge proxy logic
+│   └── test/
+│       └── worker.test.js      # Automated unit tests for edge proxy
 │
-├── data/                       # Data files
-│   ├── movies.dev.db           # Development SQLite database (WAL mode)
-│   ├── movie-data.dev.json     # Legacy dev data (auto-migrated)
-│   └── movie-data.dev.json.migrated.bak # Safety backup archive
-│
-└── src/
-    ├── app.js                  # Entry point - initializes all modules
+├── Electron-movie/
+│   ├── package.json            # Node.js project manifest
+│   ├── package-lock.json       # Dependency lock file
+│   ├── README.md               # Desktop application overview
+│   │
+│   ├── data/                   # Data files
+│   │   ├── movies.dev.db       # Development SQLite database (WAL mode)
+│   │   ├── movie-data.dev.json # Legacy dev data (auto-migrated)
+│   │   └── movie-data.dev.json.migrated.bak # Safety backup archive
+│   │
+│   └── src/
+│       ├── app.js              # Entry point - initializes all modules
+```
     │
     ├── core/                   # Electron main process
     │   ├── main.js             # Window creation, IPC handlers
@@ -129,8 +139,8 @@ Electron-movie/
 | `trigger-backup-now` | Triggers immediate SQLite online backup |
 | `restore-from-backup` | Restores database from a selected SQLite backup or snapshot file |
 | `read-json` / `write-json` | Backward-compatibility proxies to DatabaseService |
-| `get-api-key` | Retrieves TMDB key from `apiKey.txt` (Settings) or `.env` |
-| `set-api-key` | Saves the TMDB key securely to the user data directory |
+| `get-api-key` | (Legacy) Retrieves optional local TMDB key from `apiKey.txt` or `.env` |
+| `set-api-key` | (Legacy) Saves TMDB key to user data directory |
 | `is-dev` | Checks development mode |
 
 ### Model Layer
@@ -201,4 +211,38 @@ sequenceDiagram
     View-->>User: Updated UI
 ```
 
-**Dependencies**: `electron`, `electron-updater`, `electron-reloader` (dev), `dotenv`, `cross-env`, `fast-xml-parser`
+## TMDB Proxy & Cloudflare Edge Architecture
+
+The application routes TMDB API calls through a private Cloudflare Worker reverse proxy (`https://tmdb-proxy.movie-feed.workers.dev/3`):
+
+```mermaid
+sequenceDiagram
+    participant App as Electron App
+    participant Worker as Cloudflare Worker Edge
+    participant TMDB as api.themoviedb.org
+
+    App->>Worker: GET /movie/123?append_to_response=credits (Header: X-App-Key)
+    alt Unauthorized Origin or Missing X-App-Key
+        Worker-->>App: 401/403 Error
+    else Valid Request & Cache Hit
+        Worker-->>App: 200 OK (Served from Edge Cache in ~15ms)
+    else Valid Request & Cache Miss
+        Worker->>TMDB: GET /3/movie/123?append_to_response=credits (Auth: Bearer TMDB_TOKEN)
+        TMDB-->>Worker: 200 JSON Response
+        Worker-->>App: 200 OK (CORS + Cache-Control: max-age=43200)
+    end
+```
+
+### Key Architectural Highlights:
+1. **Zero-Configuration Experience:** Users and clone contributors do not require individual TMDB accounts or local `.env` files.
+2. **Primary Proxy with `.env` Fallback:** The Cloudflare Worker proxy is the normal default routing path to maximize speed and caching. If a user provides `APIKEY` in `.env` (or local storage), the app seamlessly falls back to direct `api.themoviedb.org` communication.
+3. **Request Halving (`append_to_response=credits`):** Combines movie details and credits into a single HTTP request, cutting sync time and network overhead by 50%.
+4. **Defense-in-Depth:**
+   - `X-App-Key` header verified with constant-time equality (`timingSafeEqual`).
+   - Strict Origin hostname validation (blocks external web domains like `fake-localhost.com`, permits local Electron `null` and `localhost`).
+   - Query parameter whitelisting and canonical sorting (`cleanParams.sort()`) for 100% deterministic edge cache hits.
+   - Sliding-window burst limiter (40 req / 10s per IP) capped at 2,000 tracked client IPs.
+5. **Gentle Pacing:** Letterboxd RSS sync adds a 150ms delay between consecutive items to ensure steady, polite API traffic.
+
+**Dependencies**: `electron`, `better-sqlite3`, `electron-updater`, `electron-reloader` (dev), `dotenv`, `cross-env`, `fast-xml-parser`
+

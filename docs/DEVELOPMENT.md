@@ -5,29 +5,27 @@ This document provides instructions on how to set up, run, and build the Electro
 ## Setup & Installation
 
 1. **Prerequisites**
-   - Node.js (v14+) & npm
-   - A [TMDB API key](https://developers.themoviedb.org)
+   - Node.js (v18+) & npm
 
 2. **Clone & Install**
    ```powershell
-   git clone https://github.com/your-repo/Electron-movie-json-demo.git
-   cd Electron-movie-json-demo
+   git clone https://github.com/Mikko5/Movie-Tracker-App.git
+   cd Movie-Tracker-App/Electron-movie
    npm install
    ```
 
-3. **Configure TMDB Key**
-   There are two ways to configure your TMDB API Key:
-   - **(Recommended for Production)**: Open the application, click **Settings**, and paste your API key into the "TMDB API Key" field. It will be securely saved to your user data directory (`apiKey.txt`).
-   - **(For Development)**: Create a file named `.env` in the project root and add:
-     ```text
-     APIKEY=your_token_here
-     ```
-   
-   > **Note on TMDB Keys:** The application automatically supports **both** types of TMDB authentication tokens:
-   > 1. The short **API Key (v3)** (~32 characters)
-   > 2. The long **Read Access Token (v4)** (~200+ characters)
-   > 
-   > Simply paste whichever one you have into the Settings UI or `.env` file, and the application will dynamically format the API requests (`?api_key=` vs `Bearer`) based on the length of your key!
+3. **TMDB Setup (Cloudflare Proxy Default with `.env` Fallback)**
+   - **Default Mode (Cloudflare Edge Proxy)**:
+     - Normally, the application routes all TMDB search and metadata queries through a dedicated **Cloudflare Worker proxy** (`https://tmdb-proxy.movie-feed.workers.dev/3`).
+     - **Why this is the standard**: It provides multi-tier edge caching (24h edge, 12h local RAM), 1ms empty search short-circuiting, origin validation, and 50% request reduction (`append_to_response=credits`).
+     - **No TMDB account, API key, or `.env` file is required** to run the app or contribute!
+   - **Fallback / Override Mode (Via `.env`)**:
+     - **`.env` is supported as an optional fallback / override**. If you wish to bypass the proxy and use your own personal TMDB credentials directly, create an `Electron-movie/.env` file containing:
+       ```env
+       APIKEY=your_tmdb_token_or_v3_key
+       ```
+     - When detected, the application routes requests **directly to `https://api.themoviedb.org/3`** using your personal key (supports both TMDB v4 JWT Bearer tokens and v3 API keys).
+   - If desired, the Cloudflare Worker proxy package can be customized or deployed independently using the files in [`cloudflare-worker/`](../cloudflare-worker/).
 
 ## Running the Application
 
@@ -106,6 +104,61 @@ When a user launches the compiled application (Production mode), the auto-update
    - **Restart & Install**: Once the download completes, a green button appears. Clicking it safely quits the application, executes the downloaded installer, and automatically relaunches the updated app.
 
 > **Note on Development Mode**: The auto-updater is intentionally disabled when running via `npm start`. If you click "Check for Updates" in dev mode, the app will explicitly warn you that auto-updating is disabled to prevent configuration errors.
+
+## Cloudflare Worker Management via Commands
+
+The repository contains the edge reverse proxy in the [`cloudflare-worker/`](../cloudflare-worker/) directory. You can test, configure secrets, deploy, and inspect the worker entirely via CLI commands:
+
+### 1. Navigate to the Worker Directory
+```powershell
+cd cloudflare-worker
+```
+
+### 2. Run Automated Worker Tests
+Run the standalone unit test suite natively via Node.js test runner:
+```powershell
+npm test
+```
+
+### 3. Log into Cloudflare
+Authorize the Wrangler CLI with your Cloudflare account:
+```powershell
+npx wrangler login
+```
+
+### 4. Configure or Update Secrets
+Set or update your TMDB API token securely in Cloudflare's encrypted storage (never committed to git):
+```powershell
+# Set your TMDB v4 Read Access Token (or v3 Key)
+npx wrangler secret put TMDB_TOKEN
+
+# (Optional) Customize the client handshake key (default: MovieTracker-Client-Secure-2026)
+npx wrangler secret put CLIENT_KEY
+```
+
+### 5. Deploy Worker Updates to Cloudflare Edge
+Publish changes globally across Cloudflare's edge network:
+```powershell
+npx wrangler deploy
+# or
+npm run deploy
+```
+
+### 6. View Live Traffic and Logs
+Stream real-time console logs and HTTP requests from the live worker:
+```powershell
+npx wrangler tail
+```
+
+### 7. Test the Live Endpoint via CLI
+Verify that the deployed worker is active and responding:
+```powershell
+# Unauthorized request (Expected: 401)
+curl.exe -i "https://tmdb-proxy.movie-feed.workers.dev/3/search/movie?query=Inception"
+
+# Authorized request (Expected: 200)
+curl.exe -i -H "X-App-Key: MovieTracker-Client-Secure-2026" "https://tmdb-proxy.movie-feed.workers.dev/3/search/movie?query=Inception"
+```
 
 ## Testing
 

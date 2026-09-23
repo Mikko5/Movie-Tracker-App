@@ -217,8 +217,9 @@ describe('MovieModel', () => {
     });
 
     describe('Constants', () => {
-        test('exports API_BASE_URL', () => {
-            expect(MovieModel.API_BASE_URL).toBe('https://api.themoviedb.org/3');
+        test('exports API_BASE_URL and APP_CLIENT_KEY', () => {
+            expect(MovieModel.API_BASE_URL).toBe('https://tmdb-proxy.movie-feed.workers.dev/3');
+            expect(MovieModel.APP_CLIENT_KEY).toBe('MovieTracker-Client-Secure-2026');
         });
 
         test('exports image base URLs', () => {
@@ -248,6 +249,8 @@ describe('MovieModel', () => {
             await MovieModel.loadState(showMessageMock, { searchInput, searchBtn });
 
             expect(MovieModel.getWatchedMovies()).toEqual(mockMovies);
+            expect(searchInput.disabled).toBe(false);
+            expect(searchBtn.disabled).toBe(false);
         });
 
         test('sets empty array when movies load fails', async () => {
@@ -261,7 +264,10 @@ describe('MovieModel', () => {
             expect(MovieModel.getWatchedMovies()).toEqual([]);
         });
 
-        test('disables search when API key is missing', async () => {
+        test('keeps search enabled even when local API key is missing (routes via Cloudflare proxy)', async () => {
+            searchInput.disabled = true;
+            searchBtn.disabled = true;
+
             window.electronAPI.invoke.mockImplementation((channel) => {
                 if (channel === 'read-json') return Promise.resolve([]);
                 if (channel === 'get-api-key') return Promise.resolve(null);
@@ -269,9 +275,9 @@ describe('MovieModel', () => {
 
             await MovieModel.loadState(showMessageMock, { searchInput, searchBtn });
 
-            expect(searchInput.disabled).toBe(true);
-            expect(searchBtn.disabled).toBe(true);
-            expect(showMessageMock).toHaveBeenCalledWith(expect.stringContaining('API Key not found'), 'error');
+            expect(searchInput.disabled).toBe(false);
+            expect(searchBtn.disabled).toBe(false);
+            expect(showMessageMock).not.toHaveBeenCalledWith(expect.stringContaining('API Key not found'), 'error');
         });
 
         test('enables search when API key is present', async () => {

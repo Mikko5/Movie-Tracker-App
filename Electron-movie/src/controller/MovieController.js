@@ -39,8 +39,6 @@ let restoreBackupBtn = null;
 let backupFolderDisplay = null;
 let backupStatusDisplay = null;
 let backupModalStatusDisplay = null;
-let saveApiKeyBtn = null;
-let apiKeyInput = null;
 let searchInput = null;
 let searchBtn = null;
 let showPostersBtn = null;
@@ -86,8 +84,6 @@ export const initMovieController = (elements) => {
     backupFolderDisplay = elements.backupFolderDisplay;
     backupStatusDisplay = elements.backupStatusDisplay;
     backupModalStatusDisplay = elements.backupModalStatusDisplay;
-    saveApiKeyBtn = elements.saveApiKeyBtn;
-    apiKeyInput = elements.apiKeyInput;
     searchInput = elements.searchInput;
     searchBtn = elements.searchBtn;
     showPostersBtn = elements.showPostersBtn;
@@ -267,21 +263,7 @@ export const setupEventListeners = () => {
         });
     }
 
-    // Save API key button
-    if (saveApiKeyBtn && apiKeyInput) {
-        saveApiKeyBtn.addEventListener('click', async () => {
-            const newKey = apiKeyInput.value.trim();
-            const result = await window.electronAPI.invoke('set-api-key', newKey);
-            if (result.success) {
-                ApiService.setApiKey(newKey);
-                if (searchInput) searchInput.disabled = false;
-                if (searchBtn) searchBtn.disabled = false;
-                showMessage('API Key saved successfully!');
-            } else {
-                showMessage('Failed to save API Key.', true);
-            }
-        });
-    }
+
 
     // Show posters button
     if (showPostersBtn) {
@@ -767,9 +749,6 @@ export const loadApp = async () => {
     const apiKey = await MovieModel.loadState(showMessage, elements);
     if (apiKey) {
         ApiService.setApiKey(apiKey);
-        if (elements.apiKeyInput) {
-            elements.apiKeyInput.value = apiKey;
-        }
     }
 
     // Check if in development mode

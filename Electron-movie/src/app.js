@@ -108,8 +108,6 @@ const getDOMElements = () => {
         backupFolderDisplay: document.getElementById('backup-folder-display'),
         backupStatusDisplay: document.getElementById('backup-status-display'),
         backupModalStatusDisplay: document.getElementById('backup-modal-status-display'),
-        apiKeyInput: document.getElementById('api-key-input'),
-        saveApiKeyBtn: document.getElementById('save-api-key-btn'),
         bgColorPicker: document.getElementById('bg-color-picker'),
         resetBgColorBtn: document.getElementById('reset-bg-color-btn'),
         appVersionText: document.getElementById('app-version-text'),

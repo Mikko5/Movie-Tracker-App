@@ -146,4 +146,45 @@ describe('LetterboxdController', () => {
         expect(elements.syncMoviesList.children).toHaveLength(2);
         expect(ModalManager.push).toHaveBeenCalledWith('syncConfirm');
     });
+
+    test('confirmSyncBtn adds new movies with TMDB details and saves state', async () => {
+        window.electronAPI.invoke.mockImplementation((channel) => {
+            if (channel === 'get-letterboxd-settings') return Promise.resolve({ username: 'testuser' });
+            if (channel === 'fetch-letterboxd-rss') return Promise.resolve({
+                newMovies: [
+                    { title: 'New Movie 1', letterboxdId: '123', tmdbId: 101, rating: 4, pubDate: '2026-09-20' }
+                ]
+            });
+            return Promise.resolve();
+        });
+
+        MovieModel.getWatchedMovies.mockReturnValue([]);
+        ApiService.getMovieDetails.mockResolvedValueOnce({
+            id: 101,
+            title: 'New Movie 1',
+            poster_path: '/poster.jpg',
+            director: 'Director One',
+            genres: ['Drama'],
+            runtime: 110
+        });
+
+        // 1. Trigger sync to populate newLetterboxdMovies
+        elements.syncLetterboxdBtn.click();
+        await new Promise(resolve => setTimeout(resolve, 10));
+
+        // 2. Click confirm sync
+        elements.confirmSyncBtn.click();
+        await new Promise(resolve => setTimeout(resolve, 10));
+
+        expect(ApiService.getMovieDetails).toHaveBeenCalledWith(101, expect.any(Function));
+        expect(MovieModel.addMovie).toHaveBeenCalledWith(expect.objectContaining({
+            id: 101,
+            title: 'New Movie 1',
+            userRating: 4,
+            director: 'Director One',
+            watchDate: '2026-09-20'
+        }));
+        expect(MovieModel.saveState).toHaveBeenCalled();
+        expect(ModalManager.pop).toHaveBeenCalled();
+    });
 });

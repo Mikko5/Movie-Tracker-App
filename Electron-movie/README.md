@@ -5,7 +5,7 @@ This Electron-based application helps you build and maintain a personal "watched
 ## Overview & Purpose  
 - High-performance SQLite database with WAL mode and automatic legacy JSON migration  
 - Automatic background folder backup with missing-folder protection & manual snapshot exports (.db)  
-- Search The Movie Database (TMDB) for titles, directors, genres, and posters  
+- Zero-configuration TMDB movie search via private Cloudflare Worker proxy (no API key or `.env` needed)  
 - Record details (rating, watch date, format, rewatch status, comments)  
 - Filter & sort your collection by year, genre, director, format, rating, or date  
 - View full details with external links to IMDb & Letterboxd  

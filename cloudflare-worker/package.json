@@ -1,0 +1,14 @@
+{
+  "name": "tmdb-proxy-worker",
+  "version": "1.0.0",
+  "description": "Production-grade Cloudflare Worker TMDB edge proxy for Movie Tracker",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/worker.test.js",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  },
+  "license": "ISC"
+}

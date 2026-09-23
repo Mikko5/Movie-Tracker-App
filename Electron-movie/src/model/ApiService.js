@@ -2,12 +2,13 @@
  * ApiService - Handles all TMDB API calls
  */
 
-import { API_BASE_URL, SEARCH_IMAGE_BASE_URL } from './MovieModel.js';
+import { API_BASE_URL, APP_CLIENT_KEY, SEARCH_IMAGE_BASE_URL } from './MovieModel.js';
 
 let tmdbApiKey = null;
+const DIRECT_TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
 /**
- * Sets the API key for TMDB requests
+ * Sets the API key for TMDB requests (from .env or local storage)
  * @param {string} key - The API key
  */
 export const setApiKey = (key) => {
@@ -21,25 +22,62 @@ export const setApiKey = (key) => {
 export const getApiKey = () => tmdbApiKey;
 
 /**
- * Prepares the URL and Headers for a TMDB request based on the key type.
- * TMDB v3 API Keys (short) must be sent as a query parameter.
- * TMDB v4 Read Access Tokens (long) must be sent as a Bearer token.
+ * Executes an API request with automatic fallback.
+ * - Primary (Default): Always routes through the Cloudflare Worker edge proxy first to benefit
+ *   from global edge caching, 0ms repeated views, and 50% request reduction.
+ * - Automatic Fallback: ONLY if the proxy is not working (network failure or 5xx server error)
+ *   AND a personal API key is available (via .env or local storage), it automatically retries directly
+ *   against api.themoviedb.org using the fallback key.
+ *
+ * @param {string} endpointAndQuery - The endpoint path and query string (e.g. '/search/movie?query=Avatar')
+ * @returns {Promise<Response>} The HTTP Response object
  */
-const prepareAuth = (url) => {
-    let finalUrl = url;
-    let headers = {};
-    
-    if (!tmdbApiKey) return { finalUrl, headers };
+export const fetchWithFallback = async (endpointAndQuery) => {
+    const proxyUrl = `${API_BASE_URL}${endpointAndQuery}`;
+    const proxyHeaders = {
+        'Accept': 'application/json',
+        'X-App-Key': APP_CLIENT_KEY
+    };
 
-    if (tmdbApiKey.length > 100) {
-        // It's a v4 Read Access Token (JWT)
-        headers['Authorization'] = `Bearer ${tmdbApiKey}`;
-    } else {
-        // It's a v3 API Key
-        const separator = finalUrl.includes('?') ? '&' : '?';
-        finalUrl = `${finalUrl}${separator}api_key=${tmdbApiKey}`;
+    let proxyError = null;
+    let proxyResponse = null;
+
+    try {
+        proxyResponse = await fetch(proxyUrl, { headers: proxyHeaders });
+        // If the proxy responds successfully or with a valid client error (e.g. 404), return it immediately
+        if (proxyResponse.ok || (proxyResponse.status < 500 && proxyResponse.status !== 0)) {
+            return proxyResponse;
+        }
+    } catch (err) {
+        proxyError = err;
     }
-    return { finalUrl, headers };
+
+    // Proxy is down or returned a 5xx server error -> attempt direct fallback if .env / local key is present
+    if (tmdbApiKey) {
+        console.warn('Cloudflare proxy unavailable. Retrying directly with fallback TMDB key...');
+        let directUrl = `${DIRECT_TMDB_BASE_URL}${endpointAndQuery}`;
+        const directHeaders = { 'Accept': 'application/json' };
+
+        if (tmdbApiKey.length > 100) {
+            directHeaders['Authorization'] = `Bearer ${tmdbApiKey}`;
+        } else {
+            const separator = directUrl.includes('?') ? '&' : '?';
+            directUrl = `${directUrl}${separator}api_key=${tmdbApiKey}`;
+        }
+
+        try {
+            return await fetch(directUrl, { headers: directHeaders });
+        } catch (fallbackErr) {
+            console.error('Fallback direct TMDB fetch also failed:', fallbackErr);
+            throw fallbackErr;
+        }
+    }
+
+    // If no fallback key exists, throw the original proxy error or return the 5xx response
+    if (proxyError) {
+        throw proxyError;
+    }
+    return proxyResponse;
 };
 
 /**
@@ -49,64 +87,51 @@ const prepareAuth = (url) => {
  * @returns {Promise<Array|null>} The search results array or null on failure.
  */
 export const searchMoviesByTitle = async (query, showMessage) => {
-    if (!tmdbApiKey) {
-        showMessage('TMDB API Key not loaded. Cannot search.', 'error');
+    if (!query || !query.trim()) {
         return null;
     }
-    if (!query) {
-        return null;
-    }
-    
-    const { finalUrl, headers } = prepareAuth(`${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`);
     
     try {
-        const searchResponse = await fetch(finalUrl, { headers });
+        const searchResponse = await fetchWithFallback(`/search/movie?query=${encodeURIComponent(query.trim())}`);
         if (!searchResponse.ok) {
-            const errorData = await searchResponse.json();
-            showMessage(`API Error: ${errorData.status_message || 'Unknown error. Check your API key.'}`, 'error');
+            const errorData = await searchResponse.json().catch(() => ({}));
+            showMessage(`API Error: ${errorData.error || errorData.status_message || 'Could not fetch search results.'}`, 'error');
             return null;
         }
         const searchData = await searchResponse.json();
-        return searchData.results;
+        return searchData.results || [];
     } catch (error) {
-        showMessage('Failed to fetch search results. Please check your API key and network connection.', 'error');
+        showMessage('Failed to fetch search results. Please check your network connection.', 'error');
         console.error('Fetch error:', error);
         return null;
     }
 };
 
 /**
- * Fetches a single movie's details by its TMDB ID.
+ * Fetches a single movie's details and credits in a single combined request via append_to_response=credits.
  * @param {number} tmdbId The TMDB ID of the movie.
  * @param {Function} showMessage - Callback to display error messages
  * @returns {Promise<Object|null>} The movie details object or null on failure.
  */
 export const getMovieDetails = async (tmdbId, showMessage) => {
-    if (!tmdbApiKey) {
-        showMessage('TMDB API Key not loaded. Cannot fetch movie details.', 'error');
+    if (!tmdbId) {
         return null;
     }
     
-    const movieReq = prepareAuth(`${API_BASE_URL}/movie/${tmdbId}`);
-    const creditsReq = prepareAuth(`${API_BASE_URL}/movie/${tmdbId}/credits`);
-    
     try {
-        const [movieResponse, creditsResponse] = await Promise.all([
-            fetch(movieReq.finalUrl, { headers: movieReq.headers }),
-            fetch(creditsReq.finalUrl, { headers: creditsReq.headers })
-        ]);
-        if (!movieResponse.ok || !creditsResponse.ok) {
-            const errorData = await (movieResponse.ok ? creditsResponse : movieResponse).json();
-            // Suppress the modal for 404s so it doesn't spam during sync
+        const movieResponse = await fetchWithFallback(`/movie/${tmdbId}?append_to_response=credits`);
+        if (!movieResponse.ok) {
+            const errorData = await movieResponse.json().catch(() => ({}));
             if (movieResponse.status !== 404) {
-                showMessage(`API Error: ${errorData.status_message || 'Could not fetch movie details.'}`, 'error');
+                showMessage(`API Error: ${errorData.error || errorData.status_message || 'Could not fetch movie details.'}`, 'error');
             }
             return null;
         }
+        
         const movieData = await movieResponse.json();
-        const creditsData = await creditsResponse.json();
-        const director = creditsData.crew.find(member => member.job === 'Director');
+        const director = movieData.credits?.crew?.find(member => member.job === 'Director');
         const genres = movieData.genres ? movieData.genres.map(genre => genre.name) : [];
+        
         const fullMovieData = {
             id: movieData.id,
             entryId: crypto.randomUUID(),
@@ -132,21 +157,14 @@ export const getMovieDetails = async (tmdbId, showMessage) => {
  * @returns {Promise<Array|null>} Array of poster paths or null on failure
  */
 export const getAllPosters = async (tmdbId, showMessage) => {
-    if (!tmdbApiKey) {
-        showMessage('TMDB API Key not loaded. Cannot fetch posters.', 'error');
-        return null;
-    }
-    
     // TMDB IDs are integers. If it has a decimal, it's a fallback ID generated by our app (usually for TV episodes).
     if (!tmdbId || tmdbId.toString().includes('.')) {
         showMessage('TV show and episode posters are currently not available.', 'error');
         return null;
     }
     
-    let { finalUrl, headers } = prepareAuth(`${API_BASE_URL}/movie/${tmdbId}/images?include_image_language=null%2Cen`);
-    
     try {
-        const posterResponse = await fetch(finalUrl, { headers });
+        const posterResponse = await fetchWithFallback(`/movie/${tmdbId}/images?include_image_language=null%2Cen`);
         if (!posterResponse.ok) {
             return null;
         }
