@@ -98,7 +98,9 @@ describe('MovieController', () => {
         // Setup window.electronAPI mock
         window.electronAPI = {
             invoke: jest.fn().mockResolvedValue(null),
-            onJsonUpdated: jest.fn()
+            onJsonUpdated: jest.fn(),
+            onUpdaterStatus: jest.fn(),
+            onBackupStatus: jest.fn()
         };
     });
 
@@ -173,13 +175,14 @@ describe('MovieController', () => {
         test('registers modals with ModalManager', () => {
             MovieController.setupEventListeners();
 
-            // Should register 6 modals
+            // Should register 7 modals
             expect(ModalManager.register).toHaveBeenCalledWith('poster', expect.any(Object));
             expect(ModalManager.register).toHaveBeenCalledWith('search', expect.any(Object));
             expect(ModalManager.register).toHaveBeenCalledWith('deleteConfirm', expect.any(Object));
             expect(ModalManager.register).toHaveBeenCalledWith('details', expect.any(Object));
             expect(ModalManager.register).toHaveBeenCalledWith('info', expect.any(Object));
             expect(ModalManager.register).toHaveBeenCalledWith('settings', expect.any(Object));
+            expect(ModalManager.register).toHaveBeenCalledWith('backup', expect.any(Object));
         });
 
         test('movie card click opens info modal', () => {
@@ -232,6 +235,9 @@ describe('MovieController', () => {
         let settingsBtn, settingsCloseBtn, todayBtn;
         let watchDateInput, selectSaveLocationBtn, showPostersBtn;
         let bgColorPicker, resetBgColorBtn;
+        let selectBackupLocationBtn, backupNowBtn, restoreBackupBtn;
+        let backupFolderDisplay, backupStatusDisplay;
+        let openBackupModalBtn, backupCloseBtn, removeBackupFolderBtn, toggleAutoBackupCheckbox, exportSnapshotBtn;
 
         beforeEach(() => {
             editBtn = document.createElement('button');
@@ -251,6 +257,18 @@ describe('MovieController', () => {
             bgColorPicker = document.createElement('input');
             bgColorPicker.type = 'color';
             resetBgColorBtn = document.createElement('button');
+            selectBackupLocationBtn = document.createElement('button');
+            backupNowBtn = document.createElement('button');
+            restoreBackupBtn = document.createElement('button');
+            backupFolderDisplay = document.createElement('p');
+            backupStatusDisplay = document.createElement('p');
+            openBackupModalBtn = document.createElement('button');
+            backupCloseBtn = document.createElement('button');
+            removeBackupFolderBtn = document.createElement('button');
+            toggleAutoBackupCheckbox = document.createElement('input');
+            toggleAutoBackupCheckbox.type = 'checkbox';
+            toggleAutoBackupCheckbox.checked = true;
+            exportSnapshotBtn = document.createElement('button');
 
             MovieController.initMovieController({
                 movieList: document.createElement('div'),
@@ -267,6 +285,16 @@ describe('MovieController', () => {
                 todayBtn,
                 watchDateInput,
                 selectSaveLocationBtn,
+                openBackupModalBtn,
+                backupCloseBtn,
+                selectBackupLocationBtn,
+                backupNowBtn,
+                removeBackupFolderBtn,
+                toggleAutoBackupCheckbox,
+                exportSnapshotBtn,
+                restoreBackupBtn,
+                backupFolderDisplay,
+                backupStatusDisplay,
                 showPostersBtn,
                 bgColorPicker,
                 resetBgColorBtn,
@@ -383,6 +411,145 @@ describe('MovieController', () => {
             await Promise.resolve();
 
             expect(window.electronAPI.invoke).toHaveBeenCalledWith('select-save-location');
+        });
+
+        test('select backup location button invokes select-backup-location and updates UI', async () => {
+            window.electronAPI.invoke.mockImplementation((channel) => {
+                if (channel === 'select-backup-location') {
+                    return Promise.resolve({ success: true, folder: 'C:/OneDrive/Backup' });
+                }
+                if (channel === 'get-backup-settings') {
+                    return Promise.resolve({ backupFolder: 'C:/OneDrive/Backup', lastBackupTime: '2026-09-23T00:00:00Z' });
+                }
+                return Promise.resolve({ success: true });
+            });
+
+            selectBackupLocationBtn.click();
+            await new Promise(process.nextTick);
+            await new Promise(process.nextTick);
+
+            expect(window.electronAPI.invoke).toHaveBeenCalledWith('select-backup-location');
+            expect(backupFolderDisplay.textContent).toContain('C:/OneDrive/Backup');
+        });
+
+        test('backup now button triggers manual backup and updates button state', async () => {
+            window.electronAPI.invoke.mockImplementation((channel) => {
+                if (channel === 'trigger-backup-now') {
+                    return Promise.resolve({ success: true });
+                }
+                if (channel === 'get-backup-settings') {
+                    return Promise.resolve({ backupFolder: 'C:/OneDrive/Backup', lastBackupTime: '2026-09-23T12:00:00Z' });
+                }
+                return Promise.resolve({ success: true });
+            });
+
+            backupNowBtn.click();
+            await new Promise(process.nextTick);
+            await new Promise(process.nextTick);
+
+            expect(window.electronAPI.invoke).toHaveBeenCalledWith('trigger-backup-now');
+            expect(backupNowBtn.disabled).toBe(false);
+            expect(backupNowBtn.textContent).toBe('Backup Now');
+        });
+
+        test('restore backup button prompts user confirmation and calls restore IPC', async () => {
+            window.confirm = jest.fn().mockReturnValue(true);
+            window.electronAPI.invoke.mockImplementation((channel) => {
+                if (channel === 'restore-from-backup') {
+                    return Promise.resolve({ success: true });
+                }
+                return Promise.resolve({ success: true });
+            });
+
+            restoreBackupBtn.click();
+            await new Promise(process.nextTick);
+
+            expect(window.confirm).toHaveBeenCalled();
+            expect(window.electronAPI.invoke).toHaveBeenCalledWith('restore-from-backup');
+        });
+
+        test('openBackupModalBtn pushes backup to ModalManager', () => {
+            openBackupModalBtn.click();
+            expect(ModalManager.push).toHaveBeenCalledWith('backup');
+        });
+
+        test('backupCloseBtn pops ModalManager', () => {
+            backupCloseBtn.click();
+            expect(ModalManager.pop).toHaveBeenCalled();
+        });
+
+        test('exportSnapshotBtn invokes export-database and notifies user', async () => {
+            window.electronAPI.invoke.mockImplementation((channel) => {
+                if (channel === 'export-database') {
+                    return Promise.resolve({ success: true, destinationFile: '/test/export.db' });
+                }
+                return Promise.resolve({ success: true });
+            });
+
+            exportSnapshotBtn.click();
+            await new Promise(process.nextTick);
+
+            expect(window.electronAPI.invoke).toHaveBeenCalledWith('export-database');
+        });
+
+        test('toggleAutoBackupCheckbox invokes toggle-auto-backup with user prompt choice', async () => {
+            window.confirm = jest.fn().mockReturnValue(true);
+            window.electronAPI.invoke.mockImplementation((channel) => {
+                if (channel === 'toggle-auto-backup') {
+                    return Promise.resolve({ success: true });
+                }
+                return Promise.resolve({ success: true });
+            });
+
+            // Simulate unchecking
+            toggleAutoBackupCheckbox.checked = false;
+            toggleAutoBackupCheckbox.dispatchEvent(new Event('change'));
+            await new Promise(process.nextTick);
+
+            expect(window.confirm).toHaveBeenCalled();
+            expect(window.electronAPI.invoke).toHaveBeenCalledWith('toggle-auto-backup', false, true);
+        });
+
+        test('removeBackupFolderBtn invokes remove-backup-folder with user prompt choice', async () => {
+            window.confirm = jest.fn().mockReturnValue(false);
+            window.electronAPI.invoke.mockImplementation((channel) => {
+                if (channel === 'remove-backup-folder') {
+                    return Promise.resolve({ success: true });
+                }
+                return Promise.resolve({ success: true });
+            });
+
+            removeBackupFolderBtn.click();
+            await new Promise(process.nextTick);
+
+            expect(window.confirm).toHaveBeenCalled();
+            expect(window.electronAPI.invoke).toHaveBeenCalledWith('remove-backup-folder', false);
+        });
+
+        test('onBackupStatus updates backup status display for various statuses', () => {
+            let statusCallback;
+            window.electronAPI.onBackupStatus.mockImplementation((cb) => {
+                statusCallback = cb;
+            });
+
+            // Re-setup listeners to register callback
+            MovieController.setupEventListeners();
+
+            // Test pending status
+            statusCallback({ status: 'pending' });
+            expect(backupStatusDisplay.textContent).toContain('pending');
+
+            // Test in-progress status
+            statusCallback({ status: 'in-progress' });
+            expect(backupStatusDisplay.textContent).toContain('Saving backup');
+
+            // Test success status
+            statusCallback({ status: 'success', lastBackupTime: '2026-09-23T15:00:00Z' });
+            expect(backupStatusDisplay.textContent).toContain('Last backup');
+
+            // Test error status
+            statusCallback({ status: 'error', message: 'Disk full' });
+            expect(backupStatusDisplay.textContent).toContain('Backup failed: Disk full');
         });
     });
 

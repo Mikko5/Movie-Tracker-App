@@ -402,3 +402,10 @@ node_modules/
 
 # environment file
 .env
+
+# SQLite Databases & Backups
+*.db
+*.db-wal
+*.db-shm
+*.migrated.bak
+scratch_test_db/

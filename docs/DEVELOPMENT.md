@@ -33,8 +33,8 @@ This document provides instructions on how to set up, run, and build the Electro
 
 ### Development Mode
 - **Command**: `npm start`
-- **Data File**: `data/movie-data.dev.json`
-- **Behavior**: Save location is fixed to prevent accidental overwrites
+- **Database File**: `data/movies.dev.db` (auto-migrated from `data/movie-data.dev.json` on first run)
+- **Behavior**: Local development sandbox. Backup settings can be tested freely.
 
 ```powershell
 npm start
@@ -42,8 +42,8 @@ npm start
 
 ### Production Mode
 - **Command**: `npm run start:prod`
-- **Data File**: `data/movie-data.json` or custom location
-- **Behavior**: Full save location control via Settings
+- **Database File**: `%APPDATA%/electron-movie-json-demo/movies.db` (auto-migrated from legacy JSON)
+- **Behavior**: Safe local AppData storage immune to cloud sync locks, with user-configured automatic folder backup (30s cooldown) and manual snapshot export support.
 
 ```powershell
 npm run start:prod

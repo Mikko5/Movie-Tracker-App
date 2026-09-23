@@ -15,6 +15,7 @@ describe('ModalView', () => {
     let infoModal;
     let deleteConfirmModal;
     let settingsModal;
+    let backupModal;
     let searchOverlay;
     let detailsModalMessageBox;
     let saveBtn;
@@ -56,6 +57,10 @@ describe('ModalView', () => {
         settingsModal = document.createElement('div');
         settingsModal.id = 'settings-modal';
         settingsModal.style.display = 'none';
+
+        backupModal = document.createElement('div');
+        backupModal.id = 'backup-modal';
+        backupModal.style.display = 'none';
 
         searchOverlay = document.createElement('div');
         searchOverlay.id = 'search-overlay';
@@ -135,6 +140,7 @@ describe('ModalView', () => {
             letterboxdBtn,
             deleteConfirmModal,
             settingsModal,
+            backupModal,
             searchOverlay
         });
     });
@@ -262,6 +268,27 @@ describe('ModalView', () => {
 
             settingsModal.style.display = 'block';
             expect(ModalView.isSettingsModalVisible()).toBe(true);
+        });
+    });
+
+    describe('Backup Modal', () => {
+        test('showBackupModal shows the modal', () => {
+            ModalView.showBackupModal();
+            expect(backupModal.style.display).toBe('block');
+        });
+
+        test('hideBackupModal hides the modal', () => {
+            backupModal.style.display = 'block';
+            ModalView.hideBackupModal();
+
+            expect(backupModal.style.display).toBe('none');
+        });
+
+        test('isBackupModalVisible returns correct state', () => {
+            expect(ModalView.isBackupModalVisible()).toBe(false);
+
+            backupModal.style.display = 'block';
+            expect(ModalView.isBackupModalVisible()).toBe(true);
         });
     });
 

@@ -22,17 +22,20 @@ This document details the usage examples, error handling, and customization opti
 
 - **Missing TMDB Key**: Disables search & shows error banner  
 - **Empty Search Results**: Displays "No results found"  
-- **Atomic File Writing & Data Safety**: Writes data to a temporary file (`.tmp`) before performing an atomic rename, preventing file corruption on crashes  
-- **Automatic Backup & Recovery**: Maintains a persistent `.bak` backup copy of your previous save state. Before backing up, the app validates `movie-data.json` to prevent overwriting `.bak` if the disk file was corrupted externally. Automatically restores from `.bak` if the primary JSON file fails to parse or is missing  
-- **Auto-Updater in Development**: Update checks are disabled in development mode to prevent configuration errors.
+- **SQLite Database with WAL Mode**: Embedded high-performance `better-sqlite3` storage with Write-Ahead Logging (WAL) and indexed lookups  
+- **Automatic Folder Backup**: Configurable background sync with 30-second debounced inactivity cooldown to any chosen folder (local or cloud-synced), with auto-disable if the folder is deleted from disk, and option to keep or delete `movies-backup.db` on disable.
+- **Export Snapshot**: Standalone one-time `.db` snapshot exports to any destination (USB drives, external HDDs, or desktop) without setting up ongoing background writes.
+- **Dedicated Backup & Storage Manager**: Accessible from Settings via a dedicated sub-modal to keep the main settings interface uncluttered.
+- **Instant Flush on Exit & Universal Restore**: Pending backups flush automatically before app shutdown, with instant manual backup and complete database restore from any `.db` file.
+- **Auto-Updater in Development**: Update checks are disabled in development mode to prevent configuration errors.  
 - **Form Validation**: Requires rating > 0 & watch date  
 
 ## Customization & Extension  
 
 - **Theme**: Update CSS variables in `:root`  
 - **New Filters**: Add options to `FilterController.js` and `MovieListView.js`  
-- **New Data Fields**: Extend `MovieModel.js` and modal views  
-- **Database**: Replace JSON IPC in `MovieModel.js` with SQLite/IndexedDB  
+- **New Data Fields**: Extend `media_items` table in `DatabaseService.js` and modal views  
+- **TV Shows**: Database schema is already equipped with `media_type` ('movie', 'tv') ready for TV show support  
 
 ## Known Limitations & Future Improvements  
 
@@ -40,4 +43,4 @@ This document details the usage examples, error handling, and customization opti
 - **Caching**: No offline TMDB result cache  
 - **Validation**: Minimal duplication checks  
 - **Accessibility**: Improve ARIA roles & keyboard focus  
-- **Testing**: Add Jest/Mocha tests for modules  
+- **Testing**: Comprehensive Jest test suite in place (280+ tests covering core, models, controllers, and views)  

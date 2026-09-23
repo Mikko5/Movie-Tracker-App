@@ -94,6 +94,9 @@ export const saveState = async (showMessage) => {
  * @param {Object} movie - The movie to add
  */
 export const addMovie = (movie) => {
+    if (!movie.media_type) {
+        movie.media_type = 'movie';
+    }
     watchedMovies.push(movie);
 };
 

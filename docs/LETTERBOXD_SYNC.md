@@ -19,8 +19,8 @@ sequenceDiagram
     participant LbSvc as LetterboxdService
     participant RSS as Letterboxd RSS
     participant TMDB as TMDB API
-    participant Local as movie-data.json
-
+    participant Local as SQLite Database
+ 
     UI->>Main: Fetch Sync (username, lastSyncId)
     Main->>LbSvc: fetchLetterboxdRSS(username)
     LbSvc->>RSS: GET https://letterboxd.com/{username}/rss/
@@ -48,7 +48,7 @@ The application fetches the RSS feed directly from `https://letterboxd.com/{user
 We use `fast-xml-parser` to parse the XML feed into JSON.
 
 ### 2. Local Database Cross-Referencing
-To determine which movies in the RSS feed are actually new, the application directly checks your local `movie-data.json` database.
+To determine which movies in the RSS feed are actually new, the application directly checks your local SQLite database.
 
 - **Unique Identifiers:** Every item in the Letterboxd RSS feed contains a `<guid>` tag which serves as a mathematically unique Global Unique Identifier for that specific watch/diary entry (e.g., `letterboxd-watch-12345678`).
 - **Sync Tracking:** When you sync a movie, its unique GUID is saved locally alongside the movie data as `letterboxdSyncId`.
@@ -60,4 +60,4 @@ Once the backend service identifies the new movies, the frontend takes over to e
 
 ### 4. Storage & Persistence
 - The `letterboxdSettings.json` file (stored in the Electron `userData` directory) securely saves the username and the `lastSyncId`.
-- Synced movies are persisted immediately to the user's selected `movie-data.json` file, using the application's robust atomic file-writing helpers.
+- Synced movies are persisted directly to the local SQLite database (`movies.db` / `movies.dev.db`), and safely backed up to OneDrive following the 30-second inactivity cooldown.

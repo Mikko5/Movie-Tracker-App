@@ -31,6 +31,7 @@ let letterboxdBtn = null;
 
 let deleteConfirmModal = null;
 let settingsModal = null;
+let backupModal = null;
 let searchOverlay = null;
 
 /**
@@ -64,6 +65,7 @@ export const initModalView = (elements) => {
 
     deleteConfirmModal = elements.deleteConfirmModal;
     settingsModal = elements.settingsModal;
+    backupModal = elements.backupModal;
     searchOverlay = elements.searchOverlay;
 };
 
@@ -209,6 +211,24 @@ export const hideSettingsModal = () => {
 };
 
 /**
+ * Shows the backup & storage manager modal
+ */
+export const showBackupModal = () => {
+    if (backupModal) {
+        backupModal.style.display = 'block';
+    }
+};
+
+/**
+ * Hides the backup & storage manager modal
+ */
+export const hideBackupModal = () => {
+    if (backupModal) {
+        backupModal.style.display = 'none';
+    }
+};
+
+/**
  * Shows the search overlay
  */
 export const showSearchOverlay = () => {
@@ -266,6 +286,14 @@ export const isDeleteConfirmModalVisible = () => {
  */
 export const isSettingsModalVisible = () => {
     return settingsModal && settingsModal.style.display === 'block';
+};
+
+/**
+ * Checks if backup modal is visible
+ * @returns {boolean}
+ */
+export const isBackupModalVisible = () => {
+    return backupModal && backupModal.style.display === 'block';
 };
 
 /**

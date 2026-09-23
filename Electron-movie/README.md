@@ -3,13 +3,14 @@
 This Electron-based application helps you build and maintain a personal "watched movies" list.
 
 ## Overview & Purpose  
-- Persist movie data locally in a JSON file  
-- Search The Movie Database (TMDB) for titles  
-- Record details (rating, watch date, format, rewatch status)  
+- High-performance SQLite database with WAL mode and automatic legacy JSON migration  
+- Automatic background folder backup with missing-folder protection & manual snapshot exports (.db)  
+- Search The Movie Database (TMDB) for titles, directors, genres, and posters  
+- Record details (rating, watch date, format, rewatch status, comments)  
 - Filter & sort your collection by year, genre, director, format, rating, or date  
 - View full details with external links to IMDb & Letterboxd  
-- Sync your latest activity automatically from your Letterboxd account
-- **Development & Production Modes** for safe testing
+- 1-way synchronization directly from your public Letterboxd diary  
+- **Development & Production Modes** for safe isolated testing
 
 ## Documentation
 

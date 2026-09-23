@@ -1,4 +1,4 @@
-export default {
+module.exports = {
     testEnvironment: 'jsdom',
     roots: ['<rootDir>/test'],
     moduleFileExtensions: ['js', 'mjs'],

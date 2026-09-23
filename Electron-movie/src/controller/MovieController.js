@@ -27,6 +27,18 @@ let settingsCloseBtn = null;
 let todayBtn = null;
 let watchDateInput = null;
 let selectSaveLocationBtn = null;
+let selectBackupLocationBtn = null;
+let openBackupModalBtn = null;
+let backupModal = null;
+let backupCloseBtn = null;
+let backupNowBtn = null;
+let removeBackupFolderBtn = null;
+let toggleAutoBackupCheckbox = null;
+let exportSnapshotBtn = null;
+let restoreBackupBtn = null;
+let backupFolderDisplay = null;
+let backupStatusDisplay = null;
+let backupModalStatusDisplay = null;
 let saveApiKeyBtn = null;
 let apiKeyInput = null;
 let searchInput = null;
@@ -62,6 +74,18 @@ export const initMovieController = (elements) => {
     todayBtn = elements.todayBtn;
     watchDateInput = elements.watchDateInput;
     selectSaveLocationBtn = elements.selectSaveLocationBtn;
+    openBackupModalBtn = elements.openBackupModalBtn;
+    backupModal = elements.backupModal;
+    backupCloseBtn = elements.backupCloseBtn;
+    selectBackupLocationBtn = elements.selectBackupLocationBtn;
+    backupNowBtn = elements.backupNowBtn;
+    removeBackupFolderBtn = elements.removeBackupFolderBtn;
+    toggleAutoBackupCheckbox = elements.toggleAutoBackupCheckbox;
+    exportSnapshotBtn = elements.exportSnapshotBtn;
+    restoreBackupBtn = elements.restoreBackupBtn;
+    backupFolderDisplay = elements.backupFolderDisplay;
+    backupStatusDisplay = elements.backupStatusDisplay;
+    backupModalStatusDisplay = elements.backupModalStatusDisplay;
     saveApiKeyBtn = elements.saveApiKeyBtn;
     apiKeyInput = elements.apiKeyInput;
     searchInput = elements.searchInput;
@@ -201,9 +225,46 @@ export const setupEventListeners = () => {
         detailsForm.addEventListener('submit', handleFormSubmit);
     }
 
-    // Save location button
+    // Save location button (legacy fallback)
     if (selectSaveLocationBtn) {
         selectSaveLocationBtn.addEventListener('click', handleSelectSaveLocation);
+    }
+
+    // Backup, Export & Restore buttons
+    if (openBackupModalBtn) {
+        openBackupModalBtn.addEventListener('click', () => {
+            ModalManager.push('backup');
+        });
+    }
+    if (backupCloseBtn) {
+        backupCloseBtn.addEventListener('click', () => {
+            ModalManager.pop();
+        });
+    }
+    if (selectBackupLocationBtn) {
+        selectBackupLocationBtn.addEventListener('click', handleSelectBackupLocation);
+    }
+    if (backupNowBtn) {
+        backupNowBtn.addEventListener('click', handleBackupNow);
+    }
+    if (removeBackupFolderBtn) {
+        removeBackupFolderBtn.addEventListener('click', handleRemoveBackupFolder);
+    }
+    if (toggleAutoBackupCheckbox) {
+        toggleAutoBackupCheckbox.addEventListener('change', handleToggleAutoBackup);
+    }
+    if (exportSnapshotBtn) {
+        exportSnapshotBtn.addEventListener('click', handleExportSnapshot);
+    }
+    if (restoreBackupBtn) {
+        restoreBackupBtn.addEventListener('click', handleRestoreBackup);
+    }
+
+    // Listen to real-time backup status notifications
+    if (window.electronAPI.onBackupStatus) {
+        window.electronAPI.onBackupStatus((data) => {
+            updateBackupUI(data);
+        });
     }
 
     // Save API key button
@@ -398,6 +459,8 @@ const handleWindowClick = (event) => {
             ModalView.hideDeleteConfirmModal();
         } else if (ModalView.isSettingsModalVisible()) {
             ModalView.hideSettingsModal();
+        } else if (ModalView.isBackupModalVisible() && event.target === backupModal) {
+            ModalManager.pop();
         } else if (syncConfirmModal && syncConfirmModal.style.display === 'block') {
             ModalManager.pop();
         }
@@ -457,17 +520,217 @@ const registerModals = () => {
         isVisible: () => ModalView.isSettingsModalVisible()
     });
 
+    ModalManager.register('backup', {
+        open: () => ModalView.showBackupModal(),
+        close: () => ModalView.hideBackupModal(),
+        isVisible: () => ModalView.isBackupModalVisible()
+    });
+
     // syncConfirm modal registered in LetterboxdController
 };
 
 /**
- * Handles save location button click
+ * Handles save location button click (legacy)
  */
 const handleSelectSaveLocation = async () => {
     const result = await window.electronAPI.invoke('select-save-location');
     if (result.success) {
         showMessage('Save location updated successfully!', 'success');
         loadApp();
+    }
+};
+
+/**
+ * Updates the Settings modal UI with current backup information
+ */
+export const refreshBackupUI = async () => {
+    try {
+        const settings = await window.electronAPI.invoke('get-backup-settings');
+        const hasFolder = Boolean(settings && settings.backupFolder);
+        const isAutoEnabled = Boolean(settings && settings.autoBackupEnabled);
+
+        if (toggleAutoBackupCheckbox) {
+            toggleAutoBackupCheckbox.checked = isAutoEnabled;
+            toggleAutoBackupCheckbox.disabled = !hasFolder;
+        }
+
+        if (removeBackupFolderBtn) {
+            removeBackupFolderBtn.style.display = hasFolder ? 'inline-block' : 'none';
+        }
+
+        if (selectBackupLocationBtn) {
+            selectBackupLocationBtn.textContent = hasFolder ? 'Change Backup Folder' : 'Select Backup Folder';
+        }
+
+        if (backupFolderDisplay) {
+            backupFolderDisplay.textContent = hasFolder
+                ? `Backup folder: ${settings.backupFolder}`
+                : 'Backup folder: Not configured (Safe AppData active)';
+        }
+
+        if (backupStatusDisplay || backupModalStatusDisplay) {
+            let statusText = '';
+            let statusColor = '#888';
+
+            if (!hasFolder) {
+                statusText = 'Safe AppData database active.';
+                statusColor = '#888';
+            } else if (!isAutoEnabled) {
+                statusText = 'Automatic backup is paused / disabled.';
+                statusColor = '#e0a000';
+            } else if (settings.lastBackupTime) {
+                const dateStr = new Date(settings.lastBackupTime).toLocaleString();
+                statusText = `Last backup: ${dateStr}`;
+                statusColor = '#00e054';
+            } else {
+                statusText = 'Automatic backup active (30s cooldown).';
+                statusColor = '#888';
+            }
+
+            if (backupStatusDisplay) {
+                backupStatusDisplay.textContent = statusText;
+                backupStatusDisplay.style.color = statusColor;
+            }
+            if (backupModalStatusDisplay) {
+                backupModalStatusDisplay.textContent = statusText;
+                backupModalStatusDisplay.style.color = statusColor;
+            }
+        }
+    } catch (_) { }
+};
+
+/**
+ * Updates the backup status text in the Settings modal when events fire
+ */
+const updateBackupUI = (data) => {
+    let statusText = '';
+    let statusColor = '#888';
+
+    if (data.status === 'pending') {
+        statusText = 'Automatic backup pending (30s cooldown)...';
+        statusColor = '#e0a000';
+    } else if (data.status === 'in-progress') {
+        statusText = 'Saving backup to folder...';
+        statusColor = '#00a0e0';
+    } else if (data.status === 'success') {
+        const dateStr = data.lastBackupTime ? new Date(data.lastBackupTime).toLocaleString() : 'Just now';
+        statusText = `Last backup: ${dateStr}`;
+        statusColor = '#00e054';
+    } else if (data.status === 'disabled' || data.status === 'removed') {
+        statusText = data.message || 'Automatic backup turned off.';
+        statusColor = '#e0a000';
+        refreshBackupUI();
+    } else if (data.status === 'error') {
+        statusText = `Backup failed: ${data.message || 'Error'}`;
+        statusColor = '#e04040';
+    }
+
+    if (backupStatusDisplay) {
+        backupStatusDisplay.textContent = statusText;
+        backupStatusDisplay.style.color = statusColor;
+    }
+    if (backupModalStatusDisplay) {
+        backupModalStatusDisplay.textContent = statusText;
+        backupModalStatusDisplay.style.color = statusColor;
+    }
+};
+
+/**
+ * Handles toggling automatic backup on or off
+ */
+const handleToggleAutoBackup = async (event) => {
+    const isChecked = event.target.checked;
+    if (!isChecked) {
+        const deleteFile = confirm('Automatic backup disabled. Would you also like to delete the existing backup file (movies-backup.db) from your backup folder?\n\nClick OK to Delete the file, or Cancel to Keep it as an archive.');
+        await window.electronAPI.invoke('toggle-auto-backup', false, deleteFile);
+        showMessage(deleteFile ? 'Auto-backup disabled and backup file deleted.' : 'Auto-backup disabled (backup file preserved).', 'info');
+    } else {
+        await window.electronAPI.invoke('toggle-auto-backup', true, false);
+        showMessage('Automatic backup enabled.', 'success');
+    }
+    await refreshBackupUI();
+};
+
+/**
+ * Handles removing the configured backup folder
+ */
+const handleRemoveBackupFolder = async () => {
+    const deleteFile = confirm('Disconnect backup folder? Would you also like to delete the existing backup file (movies-backup.db) from that folder?\n\nClick OK to Delete the file, or Cancel to Keep it as an archive.');
+    const result = await window.electronAPI.invoke('remove-backup-folder', deleteFile);
+    if (result && result.success) {
+        showMessage(deleteFile ? 'Backup folder removed and backup file deleted.' : 'Backup folder disconnected (backup file preserved).', 'info');
+        await refreshBackupUI();
+    }
+};
+
+/**
+ * Handles exporting a one-time database snapshot
+ */
+const handleExportSnapshot = async () => {
+    if (exportSnapshotBtn) {
+        exportSnapshotBtn.disabled = true;
+    }
+    try {
+        const result = await window.electronAPI.invoke('export-database');
+        if (result && result.success) {
+            showMessage('Database snapshot exported successfully!', 'success');
+        } else if (result && result.error) {
+            showMessage(`Export failed: ${result.error}`, 'error');
+        }
+    } finally {
+        if (exportSnapshotBtn) {
+            exportSnapshotBtn.disabled = false;
+        }
+    }
+};
+
+/**
+ * Handles selecting a backup folder
+ */
+const handleSelectBackupLocation = async () => {
+    const result = await window.electronAPI.invoke('select-backup-location');
+    if (result && result.success) {
+        showMessage('Backup folder set! Initial backup created successfully.', 'success');
+        await refreshBackupUI();
+    } else if (result && result.error) {
+        showMessage(`Failed to set backup folder: ${result.error}`, 'error');
+    }
+};
+
+/**
+ * Handles manual backup trigger
+ */
+const handleBackupNow = async () => {
+    if (backupNowBtn) {
+        backupNowBtn.disabled = true;
+        backupNowBtn.textContent = 'Backing up...';
+    }
+    const result = await window.electronAPI.invoke('trigger-backup-now');
+    if (backupNowBtn) {
+        backupNowBtn.disabled = false;
+        backupNowBtn.textContent = 'Backup Now';
+    }
+    if (result && result.success) {
+        showMessage('Backup completed successfully!', 'success');
+        await refreshBackupUI();
+    } else {
+        showMessage(`Backup failed: ${(result && result.error) || 'No backup folder configured'}`, 'error');
+    }
+};
+
+/**
+ * Handles restoring the database from a backup file
+ */
+const handleRestoreBackup = async () => {
+    const confirmed = confirm('Restoring a backup will replace your current database with the selected backup file. Continue?');
+    if (!confirmed) return;
+
+    const result = await window.electronAPI.invoke('restore-from-backup');
+    if (result && result.success) {
+        showMessage('Database restored successfully from backup!', 'success');
+        await loadApp();
+    } else if (result && result.error) {
+        showMessage(`Restore failed: ${result.error}`, 'error');
     }
 };
 
@@ -551,7 +814,8 @@ export const loadApp = async () => {
         console.error('Failed to load custom background color:', err);
     }
 
-    // Letterboxd settings loading moved to LetterboxdController
+    // Refresh backup settings UI
+    await refreshBackupUI();
 
     initCustomRatingDropdown();
     refreshFiltersAndView();

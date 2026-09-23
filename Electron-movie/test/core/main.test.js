@@ -65,7 +65,19 @@ describe('Main Process', () => {
             { channel: 'set-app-settings', description: 'Writes to appSettings.json' },
             { channel: 'get-letterboxd-settings', description: 'Reads letterboxdSettings.json' },
             { channel: 'set-letterboxd-settings', description: 'Writes to letterboxdSettings.json' },
-            { channel: 'fetch-letterboxd-rss', description: 'Fetches Letterboxd RSS feed via main process' }
+            { channel: 'fetch-letterboxd-rss', description: 'Fetches Letterboxd RSS feed via main process' },
+            { channel: 'db:get-all', description: 'Fetches media items from SQLite' },
+            { channel: 'db:add-movie', description: 'Inserts media item into SQLite' },
+            { channel: 'db:update-movie', description: 'Updates media item in SQLite' },
+            { channel: 'db:delete-movie', description: 'Deletes media item from SQLite' },
+            { channel: 'db:bulk-add', description: 'Bulk inserts media items in transaction' },
+            { channel: 'select-backup-location', description: 'Opens backup folder selection dialog' },
+            { channel: 'get-backup-settings', description: 'Reads backup settings' },
+            { channel: 'toggle-auto-backup', description: 'Enables or disables automatic background backup' },
+            { channel: 'remove-backup-folder', description: 'Disconnects backup folder and stops backup timer' },
+            { channel: 'export-database', description: 'Exports a standalone SQLite database snapshot' },
+            { channel: 'trigger-backup-now', description: 'Executes manual SQLite online backup' },
+            { channel: 'restore-from-backup', description: 'Restores SQLite database from backup file' }
         ];
 
         test.each(expectedHandlers)(

@@ -1,7 +1,9 @@
 const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const chokidar = require('fs').watch;  // Node.js built-in file watcher
+
+const DatabaseService = require('./DatabaseService');
+
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
 // Add this block for auto-reloading
@@ -50,41 +52,6 @@ function createWindow() {
         }
     });
 
-    // Watch for changes in the JSON file
-    let watcher = null;
-    function setupWatcher() {
-        if (watcher) {
-            watcher.close();
-            watcher = null;
-        }
-
-        if (!fs.existsSync(jsonPath)) {
-            try {
-                const dir = path.dirname(jsonPath);
-                if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-                fs.writeFileSync(jsonPath, '[]');
-            } catch (e) {
-                console.warn('Could not initialize jsonPath:', e);
-            }
-        }
-
-        try {
-            watcher = chokidar(jsonPath, (eventType, filename) => {
-                if (eventType === 'change') {
-                    win.webContents.send('json-updated');
-                }
-            });
-        } catch (e) {
-            console.warn('File watcher failed:', e.message);
-        }
-    }
-    setupWatcher();
-
-    // Update watcher when JSON path changes
-    ipcMain.on('json-path-changed', () => {
-        setupWatcher();
-    });
-
     win.loadFile(path.join(__dirname, '..', 'view', 'templates', 'movielist.html'));
 
     if (process.env.NODE_ENV === 'development') {
@@ -93,6 +60,27 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+    try {
+        fs.appendFileSync(path.join(__dirname, '..', '..', 'electron_boot.log'), 'Inside app.whenReady\n');
+    } catch (_) { }
+
+    // Initialize SQLite DatabaseService
+    DatabaseService.init({
+        isDev: process.env.NODE_ENV === 'development',
+        userDataPath: app.getPath('userData'),
+        dataDir: path.join(__dirname, '..', '..', 'data'),
+        legacyJsonPath: getUserDataPath(),
+        statusCallback: (data) => {
+            BrowserWindow.getAllWindows().forEach(win => {
+                win.webContents.send('backup-status', data);
+            });
+        }
+    });
+
+    try {
+        fs.appendFileSync(path.join(__dirname, '..', '..', 'electron_boot.log'), 'DatabaseService initialized\n');
+    } catch (_) { }
+
     createWindow();
 
     // Automatically check for updates on startup (only in production)
@@ -109,8 +97,14 @@ app.whenReady().then(() => {
     });
 });
 
+app.on('before-quit', () => {
+    DatabaseService.flushPendingBackup();
+    DatabaseService.close();
+});
+
 // Close the app when all windows are closed (except on macOS)
 app.on('window-all-closed', () => {
+    DatabaseService.flushPendingBackup();
     if (process.platform !== 'darwin') {
         app.quit();
     }
@@ -251,56 +245,156 @@ ipcMain.on('open-external-link', (event, url) => {
     }
 });
 
-// Reads the content of movie-data.json (with backup fallback) and returns it
-ipcMain.handle('read-json', async () => {
-    const backupPath = `${jsonPath}.bak`;
+// --- Database & Backup IPC Handlers ---
 
+ipcMain.handle('db:get-all', async (event, mediaType) => {
     try {
-        // Check if the primary file exists; if not, check backup or create new empty file
-        if (!fs.existsSync(jsonPath)) {
-            if (fs.existsSync(backupPath)) {
-                console.warn('Primary file missing, attempting restore from backup...');
-                const backupData = fs.readFileSync(backupPath, 'utf-8');
-                const parsedBackup = JSON.parse(backupData);
-                writeJsonAtomic(jsonPath, parsedBackup);
-                return parsedBackup;
-            }
-            writeJsonAtomic(jsonPath, []);
-            return [];
-        }
-
-        const data = fs.readFileSync(jsonPath, 'utf-8');
-        return JSON.parse(data);
+        return DatabaseService.getAllMedia(mediaType);
     } catch (err) {
-        console.error('Failed to read primary JSON file:', err);
-
-        // Attempt recovery from backup if primary JSON fails to read/parse
-        if (fs.existsSync(backupPath)) {
-            try {
-                console.warn('Attempting data recovery from backup file...');
-                const backupData = fs.readFileSync(backupPath, 'utf-8');
-                const restoredData = JSON.parse(backupData);
-                // Re-establish primary file from valid backup
-                writeJsonAtomic(jsonPath, restoredData);
-                return restoredData;
-            } catch (backupErr) {
-                console.error('Failed to read backup file:', backupErr);
-            }
-        }
-
+        console.error('db:get-all failed:', err);
         return { error: err.message };
     }
 });
 
-// Writes the given data to movie-data.json atomically
-ipcMain.handle('write-json', async (event, newData) => {
+ipcMain.handle('db:get-by-id', async (event, entryId) => {
     try {
-        writeJsonAtomic(jsonPath, newData);
-        return { success: true };
+        return DatabaseService.getMediaById(entryId);
     } catch (err) {
-        console.error('Failed to write JSON file:', err);
+        console.error('db:get-by-id failed:', err);
         return { error: err.message };
     }
+});
+
+ipcMain.handle('db:add-movie', async (event, movie) => {
+    try {
+        return DatabaseService.insertMedia(movie);
+    } catch (err) {
+        console.error('db:add-movie failed:', err);
+        return { error: err.message };
+    }
+});
+
+ipcMain.handle('db:update-movie', async (event, entryId, movie) => {
+    try {
+        return DatabaseService.updateMedia(entryId, movie);
+    } catch (err) {
+        console.error('db:update-movie failed:', err);
+        return { error: err.message };
+    }
+});
+
+ipcMain.handle('db:delete-movie', async (event, entryId) => {
+    try {
+        return DatabaseService.deleteMedia(entryId);
+    } catch (err) {
+        console.error('db:delete-movie failed:', err);
+        return { error: err.message };
+    }
+});
+
+ipcMain.handle('db:bulk-add', async (event, movies) => {
+    try {
+        return DatabaseService.bulkInsertMedia(movies);
+    } catch (err) {
+        console.error('db:bulk-add failed:', err);
+        return { error: err.message };
+    }
+});
+
+// Backward-compatibility wrappers for read-json / write-json
+ipcMain.handle('read-json', async () => {
+    try {
+        return DatabaseService.getAllMedia();
+    } catch (err) {
+        console.error('read-json proxy failed:', err);
+        return { error: err.message };
+    }
+});
+
+ipcMain.handle('write-json', async (event, newData) => {
+    try {
+        if (Array.isArray(newData)) {
+            DatabaseService.bulkInsertMedia(newData);
+        }
+        return { success: true };
+    } catch (err) {
+        console.error('write-json proxy failed:', err);
+        return { error: err.message };
+    }
+});
+
+// Backup Location Management
+ipcMain.handle('select-backup-location', async () => {
+    const currentFolder = DatabaseService.getBackupFolder();
+    const result = await dialog.showOpenDialog({
+        title: 'Select Backup Folder (e.g. OneDrive)',
+        defaultPath: currentFolder || app.getPath('documents'),
+        properties: ['openDirectory', 'createDirectory']
+    });
+
+    if (!result.canceled && result.filePaths && result.filePaths.length > 0) {
+        const selectedFolder = result.filePaths[0];
+        const backupResult = await DatabaseService.setBackupFolder(selectedFolder);
+        return {
+            success: true,
+            folder: selectedFolder,
+            backupResult
+        };
+    }
+    return { canceled: true };
+});
+
+ipcMain.handle('get-backup-settings', async () => {
+    return DatabaseService.getBackupSettings();
+});
+
+ipcMain.handle('toggle-auto-backup', async (event, enabled, deleteExistingFile) => {
+    return DatabaseService.setAutoBackupEnabled(enabled, deleteExistingFile);
+});
+
+ipcMain.handle('remove-backup-folder', async (event, deleteExistingFile) => {
+    return DatabaseService.removeBackupFolder(deleteExistingFile);
+});
+
+ipcMain.handle('export-database', async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const defaultFileName = `movies-snapshot-${today}.db`;
+    const result = await dialog.showSaveDialog({
+        title: 'Export Database Snapshot',
+        defaultPath: path.join(app.getPath('documents'), defaultFileName),
+        filters: [{ name: 'SQLite Database', extensions: ['db'] }],
+        properties: ['showOverwriteConfirmation']
+    });
+
+    if (!result.canceled && result.filePath) {
+        return await DatabaseService.exportDatabase(result.filePath);
+    }
+    return { canceled: true };
+});
+
+ipcMain.handle('trigger-backup-now', async () => {
+    return await DatabaseService.performBackup();
+});
+
+ipcMain.handle('restore-from-backup', async () => {
+    const result = await dialog.showOpenDialog({
+        title: 'Select SQLite Backup File to Restore',
+        filters: [{ name: 'SQLite Database', extensions: ['db'] }],
+        properties: ['openFile']
+    });
+
+    if (!result.canceled && result.filePaths && result.filePaths.length > 0) {
+        const backupFile = result.filePaths[0];
+        const restoreResult = DatabaseService.restoreDatabase(backupFile);
+        if (restoreResult.success) {
+            // Notify windows to reload data
+            BrowserWindow.getAllWindows().forEach(win => {
+                win.webContents.send('json-updated');
+            });
+        }
+        return restoreResult;
+    }
+    return { canceled: true };
 });
 
 // --- Auto-Updater Configuration ---

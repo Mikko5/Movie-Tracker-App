@@ -13,7 +13,8 @@ describe('Preload API', () => {
         const expectedAPI = {
             invoke: expect.any(Function),
             send: expect.any(Function),
-            onJsonUpdated: expect.any(Function)
+            onJsonUpdated: expect.any(Function),
+            onBackupStatus: expect.any(Function)
         };
 
         test('window.electronAPI has expected methods', () => {
@@ -32,6 +33,10 @@ describe('Preload API', () => {
         test('onJsonUpdated method is callable', () => {
             expect(() => window.electronAPI.onJsonUpdated(() => { })).not.toThrow();
         });
+
+        test('onBackupStatus method is callable', () => {
+            expect(() => window.electronAPI.onBackupStatus(() => { })).not.toThrow();
+        });
     });
 
     describe('IPC Channels', () => {
@@ -42,7 +47,19 @@ describe('Preload API', () => {
             'write-json',
             'get-api-key',
             'is-dev',
-            'select-save-location'
+            'select-save-location',
+            'db:get-all',
+            'db:add-movie',
+            'db:update-movie',
+            'db:delete-movie',
+            'db:bulk-add',
+            'select-backup-location',
+            'get-backup-settings',
+            'toggle-auto-backup',
+            'remove-backup-folder',
+            'export-database',
+            'trigger-backup-now',
+            'restore-from-backup'
         ];
 
         test.each(expectedChannels)('channel "%s" can be invoked', async (channel) => {

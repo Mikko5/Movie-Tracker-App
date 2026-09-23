@@ -66,14 +66,16 @@ Electron-movie/
 ├── README.md                   # This file
 │
 ├── data/                       # Data files
-│   ├── movie-data.dev.json     # Development data
-│   └── movie-data.json         # Production data (created on first run)
+│   ├── movies.dev.db           # Development SQLite database (WAL mode)
+│   ├── movie-data.dev.json     # Legacy dev data (auto-migrated)
+│   └── movie-data.dev.json.migrated.bak # Safety backup archive
 │
 └── src/
     ├── app.js                  # Entry point - initializes all modules
     │
     ├── core/                   # Electron main process
     │   ├── main.js             # Window creation, IPC handlers
+    │   ├── DatabaseService.js  # SQLite database, WAL mode, CRUD, debounced backup
     │   ├── preload.js          # Context bridge for secure IPC
     │   └── LetterboxdService.js# Letterboxd RSS parsing logic
     │
@@ -101,15 +103,35 @@ Electron-movie/
 
 ### Core Layer
 
+#### `core/DatabaseService.js`
+- **SQLite Engine**: `better-sqlite3` with WAL mode (`journal_mode = WAL`) and foreign keys.
+- **Table**: `media_items` with primary key `entryId`, future-proof `media_type` ('movie', 'tv'), Letterboxd sync fields, and indexed watch dates and titles.
+- **Migration**: Automatic zero-loss migration from legacy JSON on first launch.
+- **Automatic Backup Engine**: 30-second debounced inactivity cooldown via `db.backup()` to any user-selected folder (local, external, or cloud-synced).
+  - Automatically turns off if the destination folder is deleted or unmounted.
+  - Interactive prompt to keep or delete `movies-backup.db` when disabling or disconnecting.
+  - Immediate sync on folder selection and blocking flush on application exit.
+- **Export Snapshot**: One-time isolated export to any file path (`db.backup()`) without attaching ongoing background timers.
+- **Unified Restore**: Restores active SQLite database seamlessly from any `.db` file (automatic backup or exported snapshot).
+
 #### `core/main.js`
 | IPC Handler | Description |
 |-------------|-------------|
-| `read-json` | Reads & parses movie data JSON (with `.bak` backup auto-recovery) |
-| `write-json` | Writes movie data atomically via `.tmp` staging and updates `.bak` |
+| `db:get-all` | Fetches all media items from SQLite (supports optional `media_type` filtering) |
+| `db:add-movie` | Inserts or updates media item in SQLite and schedules debounced backup |
+| `db:update-movie` | Updates existing media item by entryId |
+| `db:delete-movie` | Deletes media item from SQLite |
+| `select-backup-location` | Directory picker for automatic backup folder with immediate initial backup |
+| `get-backup-settings` | Retrieves backup folder, autoBackupEnabled, and last backup timestamp |
+| `toggle-auto-backup` | Enables or disables automatic backup (with optional existing file deletion) |
+| `remove-backup-folder` | Disconnects the backup folder (with optional existing file deletion) |
+| `export-database` | Opens save dialog and exports a standalone `.db` snapshot |
+| `trigger-backup-now` | Triggers immediate SQLite online backup |
+| `restore-from-backup` | Restores database from a selected SQLite backup or snapshot file |
+| `read-json` / `write-json` | Backward-compatibility proxies to DatabaseService |
 | `get-api-key` | Retrieves TMDB key from `apiKey.txt` (Settings) or `.env` |
 | `set-api-key` | Saves the TMDB key securely to the user data directory |
 | `is-dev` | Checks development mode |
-| `select-save-location` | Opens file dialog for save path |
 
 ### Model Layer
 

@@ -53,7 +53,22 @@ describe('MovieModel', () => {
         test('addMovie adds a movie to the list', () => {
             const movie = { title: 'Added Movie', entryId: 'add1' };
             MovieModel.addMovie(movie);
-            expect(MovieModel.getWatchedMovies()).toContainEqual(movie);
+            expect(MovieModel.getWatchedMovies()).toContainEqual({
+                ...movie,
+                media_type: 'movie'
+            });
+        });
+
+        test('addMovie automatically sets default media_type to "movie"', () => {
+            const movie = { title: 'Untitled Movie', entryId: 'm1' };
+            MovieModel.addMovie(movie);
+            expect(movie.media_type).toBe('movie');
+        });
+
+        test('addMovie preserves custom media_type like "tv"', () => {
+            const show = { title: 'Severance', entryId: 'tv1', media_type: 'tv' };
+            MovieModel.addMovie(show);
+            expect(show.media_type).toBe('tv');
         });
 
         test('updateMovie updates an existing movie', () => {

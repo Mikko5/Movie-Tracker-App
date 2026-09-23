@@ -213,9 +213,13 @@
             <h2>Settings</h2>
             <div class="settings-options">
                 <div class="setting-item">
-                    <label>Data Storage:</label>
-                    <button id="select-save-location-btn">Select Save Location</button>
-                    <p class="setting-description">Choose where to save your movie data file.</p>
+                    <label style="font-weight: 600; font-size: 1.05em;">Database & Backup:</label>
+                    <p class="setting-description" id="backup-status-display" style="margin-top: 4px; margin-bottom: 12px; font-size: 0.9em; color: #888;">Safe AppData database active.</p>
+                    <div>
+                        <button id="open-backup-modal-btn" style="padding: 10px 18px; background-color: #1e3a5f; color: #a8d5ff; border: 1px solid #2b5282; border-radius: 4px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
+                            <span>💾</span> Manage Backups & Snapshots...
+                        </button>
+                    </div>
                 </div>
                 <div class="setting-item" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
                     <label>TMDB API Key:</label>
@@ -251,6 +255,40 @@
                     <button id="download-update-btn" style="display: none; background-color: #2196F3;">Download Update</button>
                     <button id="install-update-btn" style="display: none; background-color: #4CAF50;">Restart & Install</button>
                     <p id="update-status-text" class="setting-description" style="margin-top: 10px; color: #888;"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup & Storage Manager Modal -->
+    <div id="backup-modal" class="modal">
+        <div class="modal-content" style="max-width: 580px;">
+            <span class="close-btn backup-close-btn">&times;</span>
+            <h2>Backup & Storage Manager</h2>
+            <div class="settings-options" style="margin-top: 15px;">
+                <div class="setting-item">
+                    <label style="font-weight: 600; font-size: 1.05em;">Automatic Backup (Folder):</label>
+                    <p class="setting-description" style="margin-top: 4px; margin-bottom: 10px;">Automatically saves a synchronized copy of your database to any chosen folder 30 seconds after changes.</p>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <input type="checkbox" id="toggle-auto-backup-checkbox" style="cursor: pointer; width: 16px; height: 16px;" checked>
+                        <label for="toggle-auto-backup-checkbox" style="cursor: pointer; font-size: 0.9em; color: #ddd; margin: 0;">Enable Automatic Backup</label>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button id="select-backup-location-btn" style="flex: 1; min-width: 140px;">Select Backup Folder</button>
+                        <button id="backup-now-btn" style="padding: 8px 16px;">Backup Now</button>
+                        <button id="remove-backup-folder-btn" style="padding: 8px 16px; background-color: #442222; color: #ff8888; border: 1px solid #663333; display: none;">Remove Folder</button>
+                    </div>
+                    <p class="setting-description" id="backup-folder-display" style="margin-top: 8px; word-break: break-all; color: #aaa;">Backup folder: Not configured</p>
+                    <p class="setting-description" id="backup-modal-status-display" style="margin-top: 4px; font-size: 0.85em; color: #888;">Safe AppData database active.</p>
+                </div>
+
+                <div class="setting-item" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
+                    <label style="font-weight: 600; font-size: 1.05em;">Manual Snapshot & Recovery:</label>
+                    <p class="setting-description" style="margin-top: 4px; margin-bottom: 10px;">Export a standalone copy of your database to an external drive, USB, or folder, or restore from any existing .db backup.</p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button id="export-snapshot-btn" style="flex: 1; min-width: 160px; background-color: #1e3a5f; color: #a8d5ff; border: 1px solid #2b5282;">Export Snapshot (.db)...</button>
+                        <button id="restore-backup-btn" style="flex: 1; min-width: 160px; background-color: #333;">Restore from Backup...</button>
+                    </div>
                 </div>
             </div>
         </div>
