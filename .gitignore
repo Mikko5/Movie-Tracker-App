@@ -409,3 +409,8 @@ node_modules/
 *.db-shm
 *.migrated.bak
 scratch_test_db/
+
+# Test Coverage
+coverage/
+*.lcov
+
