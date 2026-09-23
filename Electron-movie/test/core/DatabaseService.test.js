@@ -375,4 +375,77 @@ describe('DatabaseService', () => {
         expect(DatabaseService.getBackupFolder()).toBeNull();
         expect(fs.existsSync(backupFile)).toBe(false);
     });
+
+    describe('syncMediaList', () => {
+        beforeEach(() => {
+            DatabaseService.syncMediaList([], false);
+        });
+
+        test('inserts new movies and deletes omitted movies atomically', () => {
+            const initialMovies = [
+                { entryId: 'sync-1', title: 'Inception', genres: ['Sci-Fi'] },
+                { entryId: 'sync-2', title: 'Interstellar', genres: ['Sci-Fi'] },
+                { entryId: 'sync-3', title: 'Tenet', genres: ['Action'] }
+            ];
+
+            const res1 = DatabaseService.syncMediaList(initialMovies, false);
+            expect(res1.insertedOrUpdated).toBe(3);
+            expect(res1.deleted).toBe(0);
+
+            let all = DatabaseService.getAllMedia();
+            expect(all).toHaveLength(3);
+
+            // Now simulate deleting 'sync-2' (Interstellar) and updating 'sync-1' (Inception)
+            const updatedMovies = [
+                { entryId: 'sync-1', title: 'Inception (Updated)', genres: ['Sci-Fi', 'Thriller'] },
+                { entryId: 'sync-3', title: 'Tenet', genres: ['Action'] },
+                { entryId: 'sync-4', title: 'Oppenheimer', genres: ['Drama'] }
+            ];
+
+            const res2 = DatabaseService.syncMediaList(updatedMovies, false);
+            expect(res2.insertedOrUpdated).toBe(3);
+            expect(res2.deleted).toBe(1); // 'sync-2' was deleted!
+
+            all = DatabaseService.getAllMedia();
+            expect(all).toHaveLength(3);
+            expect(DatabaseService.getMediaById('sync-2')).toBeNull();
+            expect(DatabaseService.getMediaById('sync-1').title).toBe('Inception (Updated)');
+            expect(DatabaseService.getMediaById('sync-4').title).toBe('Oppenheimer');
+
+            // Cleanup
+            DatabaseService.deleteMedia('sync-1');
+            DatabaseService.deleteMedia('sync-3');
+            DatabaseService.deleteMedia('sync-4');
+        });
+
+        test('syncMediaList with empty array deletes all records', () => {
+            DatabaseService.insertMedia({ entryId: 'del-all-1', title: 'Movie 1' });
+            DatabaseService.insertMedia({ entryId: 'del-all-2', title: 'Movie 2' });
+
+            expect(DatabaseService.getAllMedia().length).toBeGreaterThanOrEqual(2);
+
+            const res = DatabaseService.syncMediaList([], false);
+            expect(res.insertedOrUpdated).toBe(0);
+            expect(res.deleted).toBeGreaterThanOrEqual(2);
+
+            expect(DatabaseService.getAllMedia()).toHaveLength(0);
+        });
+
+        test('generates missing entryIds gracefully during sync', () => {
+            const moviesWithoutId = [
+                { title: 'No ID Movie', genres: ['Comedy'] }
+            ];
+
+            const res = DatabaseService.syncMediaList(moviesWithoutId, false);
+            expect(res.insertedOrUpdated).toBe(1);
+
+            const all = DatabaseService.getAllMedia();
+            expect(all).toHaveLength(1);
+            expect(all[0].title).toBe('No ID Movie');
+            expect(all[0].entryId).toBeDefined();
+
+            // Cleanup
+            DatabaseService.deleteMedia(all[0].entryId);
+        });
+    });
 });

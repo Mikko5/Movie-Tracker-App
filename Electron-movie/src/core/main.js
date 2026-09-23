@@ -301,6 +301,15 @@ ipcMain.handle('db:bulk-add', async (event, movies) => {
     }
 });
 
+ipcMain.handle('db:sync-media', async (event, movies) => {
+    try {
+        return DatabaseService.syncMediaList(movies);
+    } catch (err) {
+        console.error('db:sync-media failed:', err);
+        return { error: err.message };
+    }
+});
+
 // Backward-compatibility wrappers for read-json / write-json
 ipcMain.handle('read-json', async () => {
     try {
@@ -314,7 +323,7 @@ ipcMain.handle('read-json', async () => {
 ipcMain.handle('write-json', async (event, newData) => {
     try {
         if (Array.isArray(newData)) {
-            DatabaseService.bulkInsertMedia(newData);
+            DatabaseService.syncMediaList(newData);
         }
         return { success: true };
     } catch (err) {

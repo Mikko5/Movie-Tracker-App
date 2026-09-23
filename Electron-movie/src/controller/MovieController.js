@@ -417,10 +417,10 @@ const handleFormSubmit = (event) => {
 /**
  * Handles the deletion of a movie
  */
-const handleDelete = () => {
+const handleDelete = async () => {
     const currentEntryId = MovieModel.getCurrentEntryId();
     if (MovieModel.deleteMovie(currentEntryId)) {
-        MovieModel.saveState(showMessage);
+        await MovieModel.saveState(showMessage);
         refreshFiltersAndView();
         showMessage('Movie removed successfully!', 'success');
         ModalView.closeInfoModal();

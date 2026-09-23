@@ -123,6 +123,7 @@ Movie-Tracker-App/
   - Immediate sync on folder selection and blocking flush on application exit.
 - **Export Snapshot**: One-time isolated export to any file path (`db.backup()`) without attaching ongoing background timers.
 - **Unified Restore**: Restores active SQLite database seamlessly from any `.db` file (automatic backup or exported snapshot).
+- **Full State Synchronization (`syncMediaList`)**: Atomic SQLite transaction reconciling in-memory media arrays with SQLite storage. Inserts new movies, updates edited movies (posters, notes, ratings), and deletes removed records (or clears the database when empty).
 
 #### `core/main.js`
 | IPC Handler | Description |
@@ -131,6 +132,8 @@ Movie-Tracker-App/
 | `db:add-movie` | Inserts or updates media item in SQLite and schedules debounced backup |
 | `db:update-movie` | Updates existing media item by entryId |
 | `db:delete-movie` | Deletes media item from SQLite |
+| `db:bulk-add` | Bulk inserts media items within a transaction |
+| `db:sync-media` | Synchronizes full media items array with SQLite (handles inserts, updates, and deletions) |
 | `select-backup-location` | Directory picker for automatic backup folder with immediate initial backup |
 | `get-backup-settings` | Retrieves backup folder, autoBackupEnabled, and last backup timestamp |
 | `toggle-auto-backup` | Enables or disables automatic backup (with optional existing file deletion) |
@@ -138,7 +141,7 @@ Movie-Tracker-App/
 | `export-database` | Opens save dialog and exports a standalone `.db` snapshot |
 | `trigger-backup-now` | Triggers immediate SQLite online backup |
 | `restore-from-backup` | Restores database from a selected SQLite backup or snapshot file |
-| `read-json` / `write-json` | Backward-compatibility proxies to DatabaseService |
+| `read-json` / `write-json` | Backward-compatibility proxies to DatabaseService (`write-json` invokes `syncMediaList`) |
 | `get-api-key` | (Legacy) Retrieves optional local TMDB key from `apiKey.txt` or `.env` |
 | `set-api-key` | (Legacy) Saves TMDB key to user data directory |
 | `is-dev` | Checks development mode |

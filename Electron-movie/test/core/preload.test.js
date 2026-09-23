@@ -53,6 +53,7 @@ describe('Preload API', () => {
             'db:update-movie',
             'db:delete-movie',
             'db:bulk-add',
+            'db:sync-media',
             'select-backup-location',
             'get-backup-settings',
             'toggle-auto-backup',

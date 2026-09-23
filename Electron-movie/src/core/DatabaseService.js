@@ -374,6 +374,73 @@ class DatabaseService {
         return insertedCount;
     }
 
+    /**
+     * Synchronizes the SQLite database with the full list of media items.
+     * Inserts/updates items present in the list, and deletes items no longer present.
+     * Runs within an atomic SQLite transaction.
+     * @param {Array} items
+     * @param {boolean} [triggerBackup=true]
+     * @returns {{ insertedOrUpdated: number, deleted: number }}
+     */
+    syncMediaList(items, triggerBackup = true) {
+        if (!Array.isArray(items)) return { insertedOrUpdated: 0, deleted: 0 };
+
+        const syncTransaction = this.db.transaction((mediaList) => {
+            if (mediaList.length === 0) {
+                const info = this.db.prepare('DELETE FROM media_items').run();
+                return { insertedOrUpdated: 0, deleted: info.changes };
+            }
+
+            // Ensure all incoming items have an entryId before building the ID set
+            for (const item of mediaList) {
+                if (!item.entryId) {
+                    item.entryId = Date.now().toString() + Math.random().toString(36).substring(2);
+                }
+            }
+
+            const incomingIds = new Set(mediaList.map(item => item.entryId));
+            const existingRows = this.db.prepare('SELECT entryId FROM media_items').all();
+            const deleteStmt = this.db.prepare('DELETE FROM media_items WHERE entryId = ?');
+            let deletedCount = 0;
+
+            for (const row of existingRows) {
+                if (!incomingIds.has(row.entryId)) {
+                    const info = deleteStmt.run(row.entryId);
+                    deletedCount += info.changes;
+                }
+            }
+
+            const insertStmt = this.db.prepare(`
+                INSERT OR REPLACE INTO media_items (
+                    entryId, id, media_type, title, poster_path, customPoster,
+                    release_date, runtime, genres, imdb_id, director,
+                    score, userRating, watchDate, format, comment,
+                    isRewatch, letterboxdSyncId, letterboxdUrl, updatedAt
+                ) VALUES (
+                    @entryId, @id, @media_type, @title, @poster_path, @customPoster,
+                    @release_date, @runtime, @genres, @imdb_id, @director,
+                    @score, @userRating, @watchDate, @format, @comment,
+                    @isRewatch, @letterboxdSyncId, @letterboxdUrl, datetime('now')
+                )
+            `);
+
+            let upsertedCount = 0;
+            for (const raw of mediaList) {
+                const sanitized = this._sanitizeItem(raw);
+                insertStmt.run(sanitized);
+                upsertedCount++;
+            }
+
+            return { insertedOrUpdated: upsertedCount, deleted: deletedCount };
+        });
+
+        const result = syncTransaction(items);
+        if (triggerBackup) {
+            this.scheduleDebouncedBackup();
+        }
+        return result;
+    }
+
     // --- Backup & Recovery Engine ---
 
     _getBackupSettingsFilePath() {

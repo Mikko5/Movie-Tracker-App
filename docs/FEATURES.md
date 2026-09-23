@@ -43,4 +43,4 @@ This document details the usage examples, error handling, and customization opti
 - **Caching**: No offline TMDB result cache  
 - **Validation**: Minimal duplication checks  
 - **Accessibility**: Improve ARIA roles & keyboard focus  
-- **Testing**: Comprehensive Jest test suite in place (280+ tests covering core, models, controllers, and views)  
+- **Testing**: Comprehensive Jest test suite in place (300+ tests covering core, models, controllers, and views)  

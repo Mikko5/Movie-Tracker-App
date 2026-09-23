@@ -71,6 +71,7 @@ describe('Main Process', () => {
             { channel: 'db:update-movie', description: 'Updates media item in SQLite' },
             { channel: 'db:delete-movie', description: 'Deletes media item from SQLite' },
             { channel: 'db:bulk-add', description: 'Bulk inserts media items in transaction' },
+            { channel: 'db:sync-media', description: 'Synchronizes media items with SQLite database' },
             { channel: 'select-backup-location', description: 'Opens backup folder selection dialog' },
             { channel: 'get-backup-settings', description: 'Reads backup settings' },
             { channel: 'toggle-auto-backup', description: 'Enables or disables automatic background backup' },
