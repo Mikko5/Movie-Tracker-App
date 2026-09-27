@@ -222,7 +222,7 @@ export const setupEventListeners = () => {
             }
 
             // Save state
-            MovieModel.saveState(showMessage);
+            await MovieModel.saveState(showMessage);
             refreshFiltersAndView();
             showMessage(`Added ${count} movies from Letterboxd!`, 'success');
 

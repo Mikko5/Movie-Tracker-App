@@ -124,6 +124,13 @@ class DatabaseService {
             return;
         }
 
+        // If this JSON was already migrated in a previous run, do not re-migrate
+        // (prevents re-seeding if the user deliberately emptied their library)
+        const backupJsonPath = `${sourceJsonPath}.migrated.bak`;
+        if (fs.existsSync(backupJsonPath)) {
+            return;
+        }
+
         try {
             const rawContent = fs.readFileSync(sourceJsonPath, 'utf8');
             const items = JSON.parse(rawContent);

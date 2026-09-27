@@ -374,7 +374,7 @@ export const setupEventListeners = () => {
  * Handles form submission for add/edit movie
  * @param {Event} event - The submit event
  */
-const handleFormSubmit = (event) => {
+const handleFormSubmit = async (event) => {
     event.preventDefault();
 
     const formData = ModalView.getDetailsFormData();
@@ -407,7 +407,7 @@ const handleFormSubmit = (event) => {
         showMessage(`${movieToAdd.title} added successfully!`, 'success');
     }
 
-    MovieModel.saveState(showMessage);
+    await MovieModel.saveState(showMessage);
     refreshFiltersAndView();
 
     ModalView.closeDetailsModal();
