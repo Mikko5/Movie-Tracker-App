@@ -14,6 +14,9 @@ This document provides instructions on how to set up, run, and build the Electro
    npm install
    ```
 
+   > [!TIP]
+   > A proxy `package.json` is provided in the repository root. Once dependencies are installed in `Electron-movie`, all npm scripts (`npm start`, `npm run seeds`, `npm test`, `npm run build`) can be run directly from either the repository root or inside `Electron-movie`.
+
 3. **TMDB Setup (Cloudflare Proxy Default with `.env` Fallback)**
    - **Default Mode (Cloudflare Edge Proxy)**:
      - Normally, the application routes all TMDB search and metadata queries through a dedicated **Cloudflare Worker proxy** (`https://tmdb-proxy.movie-feed.workers.dev/3`).
@@ -29,14 +32,51 @@ This document provides instructions on how to set up, run, and build the Electro
 
 ## Running the Application
 
+All commands below can be executed from the repository root or from `Electron-movie/`.
+
 ### Development Mode
 - **Command**: `npm start`
 - **Database File**: `data/movies.dev.db` (auto-migrated from `data/movie-data.dev.json` on first run)
-- **Behavior**: Local development sandbox. Backup settings can be tested freely.
+- **Behavior**: Local development sandbox. Backup settings and modifications can be tested freely without touching production data.
 
 ```powershell
 npm start
 ```
+
+### Seeding the Database (Development Snapshot)
+To reset the development database to a clean, known state with 4 sample movies (*The Prestige*, *Inception*, *The Guilty*, *Godzilla vs. Kong*):
+
+- **Command**: `npm run seeds` (or `npm run seed`)
+- **Target Files**: Resets both `data/movies.dev.db` (SQLite) and `data/movie-data.dev.json` (fallback).
+- **Safe Execution**: Uses transactional `DELETE FROM media_items` to avoid Windows SQLite WAL file locks (`EBUSY`), so it can be executed even while the Electron application is actively running!
+
+```powershell
+npm run seeds
+```
+
+### Testing Letterboxd Bulk Import
+A pre-packaged Letterboxd export ZIP file is provided: [`seed-letterboxd-export.zip`](../seed-letterboxd-export.zip) (available at the repository root and inside `Electron-movie/`).
+
+It contains:
+- `diary.csv`: Exactly 5 logged entries (1 already present in the seed database for duplicate/conflict testing: *The Prestige*, plus 4 new titles: *Interstellar*, *Society of the Snow*, *Rush*, and *Dune: Part Two*).
+- `reviews.csv`: Exactly 3 movie reviews (*The Prestige*, *Interstellar*, and *Society of the Snow*), making it simple to test review merging and conflict handling without clutter.
+
+**Quick Testing Workflow**:
+1. Reset the database to the 4-movie baseline:
+   ```powershell
+   npm run seeds
+   ```
+2. Start the application:
+   ```powershell
+   npm start
+   ```
+3. In the UI top navigation bar, click the **"Bulk Import"** button.
+4. Select `seed-letterboxd-export.zip`.
+5. Preview parsed movies, inspect conflict resolution / deduplication against existing seed movies, and execute the batch sync.
+6. *(Optional)* To regenerate the sample ZIP file at any time:
+   ```powershell
+   node scripts/create-seed-zip.js
+   ```
 
 ### Production Mode
 - **Command**: `npm run start:prod`
@@ -46,6 +86,14 @@ npm start
 ```powershell
 npm run start:prod
 ```
+
+### Windows Sandbox & Display Troubleshooting
+If running on Windows where user profile directories lack `ALL APPLICATION PACKAGES` access permissions, Electron 29's Chromium sandbox can crash with `exit_code=-1073741515` (`0xC0000135` / `STATUS_DLL_NOT_FOUND`).
+
+The project handles this automatically:
+- CLI command in `package.json` runs Electron with `--no-sandbox`.
+- `main.js` sets `sandbox: false` in `BrowserWindow.webPreferences`.
+- `main.js` calls `app.disableHardwareAcceleration()` to eliminate GPU process crash loops while preserving Chromium's DWM compositing (preventing blank white screen presentation errors).
 
 ## Building the Application
 

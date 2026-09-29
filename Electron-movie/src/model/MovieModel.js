@@ -30,7 +30,7 @@ export const getCurrentFilterYear = () => currentFilterYear;
 export const getCurrentFilterFormat = () => currentFilterFormat;
 
 // Setters
-export const setWatchedMovies = (movies) => { watchedMovies = movies; };
+export const setWatchedMovies = (movies) => { watchedMovies = Array.isArray(movies) ? movies : []; };
 export const setMovieToAdd = (movie) => { movieToAdd = movie; };
 export const setCurrentEntryId = (id) => { currentEntryId = id; };
 export const setCurrentSort = (sort) => { currentSort = sort; };
@@ -50,7 +50,7 @@ export const loadState = async (showMessage, elements) => {
 
     // Load movies from database via IPC
     const movies = await window.electronAPI.invoke('read-json');
-    if (movies && !movies.error) {
+    if (Array.isArray(movies)) {
         watchedMovies = movies;
     } else {
         watchedMovies = [];

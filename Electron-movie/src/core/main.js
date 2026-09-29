@@ -1,15 +1,45 @@
 const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { autoUpdater } = require('electron-updater');
+
+const bootLogPath = path.join(__dirname, '..', '..', 'electron_boot.log');
+
+// Log uncaught errors so boot crashes are visible
+process.on('uncaughtException', (err) => {
+    try {
+        fs.appendFileSync(bootLogPath, `[UNCAUGHT EXCEPTION] ${err.stack || err}\n`);
+    } catch (_) {}
+    console.error('UNCAUGHT EXCEPTION:', err);
+});
+
+process.on('unhandledRejection', (reason) => {
+    try {
+        fs.appendFileSync(bootLogPath, `[UNHANDLED REJECTION] ${reason.stack || reason}\n`);
+    } catch (_) {}
+    console.error('UNHANDLED REJECTION:', reason);
+});
+
+
+let mainWindow = null;
 
 const DatabaseService = require('./DatabaseService');
 
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
-// Add this block for auto-reloading
-try {
-    require('electron-reloader')(module);
-} catch (_) { }
+// Auto-reloading in development
+if (process.env.NODE_ENV === 'development') {
+    try {
+        require('electron-reloader')(module, {
+            ignore: [
+                'electron_boot.log',
+                /(^|[/\\])data([/\\]|$)/,
+                /\.db(-.*)?$/,
+                /\.log$/
+            ]
+        });
+    } catch (_) { }
+}
 
 // Set isolated settings paths for development vs production
 if (!app.isPackaged) {
@@ -42,28 +72,49 @@ let jsonPath = getUserDataPath();
 
 
 function createWindow() {
-    const win = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         width: 1000,
         height: 800,
+        backgroundColor: '#14181C',
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
-            nodeIntegration: false
+            nodeIntegration: false,
+            sandbox: false
         }
     });
 
-    win.loadFile(path.join(__dirname, '..', 'view', 'templates', 'movielist.html'));
+    mainWindow.webContents.on('did-finish-load', () => {
+        const msg = '[webContents] did-finish-load';
+        console.log(msg);
+        try { fs.appendFileSync(bootLogPath, msg + '\n'); } catch (_) {}
+    });
+
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+        const msg = `[webContents] did-fail-load: ${errorCode} ${errorDescription} ${validatedURL}`;
+        console.error(msg);
+        try { fs.appendFileSync(bootLogPath, msg + '\n'); } catch (_) {}
+    });
+
+    mainWindow.webContents.on('render-process-gone', (event, details) => {
+        const msg = `[webContents] render-process-gone: ${details.reason} (exit code ${details.exitCode})`;
+        console.error(msg);
+        try { fs.appendFileSync(bootLogPath, msg + '\n'); } catch (_) {}
+    });
+
+
+    mainWindow.loadFile(path.join(__dirname, '..', 'view', 'templates', 'movielist.html'));
 
     if (process.env.NODE_ENV === 'development') {
-        win.webContents.openDevTools();
+        mainWindow.webContents.openDevTools();
     }
+
+    mainWindow.on('closed', () => {
+        mainWindow = null;
+    });
 }
 
 app.whenReady().then(() => {
-    try {
-        fs.appendFileSync(path.join(__dirname, '..', '..', 'electron_boot.log'), 'Inside app.whenReady\n');
-    } catch (_) { }
-
     // Initialize SQLite DatabaseService
     DatabaseService.init({
         isDev: process.env.NODE_ENV === 'development',
@@ -76,10 +127,6 @@ app.whenReady().then(() => {
             });
         }
     });
-
-    try {
-        fs.appendFileSync(path.join(__dirname, '..', '..', 'electron_boot.log'), 'DatabaseService initialized\n');
-    } catch (_) { }
 
     createWindow();
 
@@ -407,7 +454,6 @@ ipcMain.handle('restore-from-backup', async () => {
 });
 
 // --- Auto-Updater Configuration ---
-const { autoUpdater } = require('electron-updater');
 autoUpdater.autoDownload = false;
 autoUpdater.autoInstallOnAppQuit = true;
 
@@ -464,6 +510,7 @@ ipcMain.handle('quit-and-install', () => {
 
 // --- Letterboxd Integration ---
 const { fetchLetterboxdRSS, getNewMovies } = require('./LetterboxdService');
+const { parseLetterboxdZip } = require('./LetterboxdImportService');
 
 ipcMain.handle('get-letterboxd-settings', async () => {
     const settingsPath = path.join(app.getPath('userData'), 'letterboxdSettings.json');
@@ -521,3 +568,40 @@ ipcMain.handle('fetch-letterboxd-rss', async (event, username, lastSyncId) => {
         return { error: err.message };
     }
 });
+
+ipcMain.handle('select-letterboxd-zip', async () => {
+    try {
+        const result = await dialog.showOpenDialog(mainWindow, {
+            title: 'Select Letterboxd Export ZIP',
+            buttonLabel: 'Select ZIP',
+            properties: ['openFile'],
+            filters: [
+                { name: 'Letterboxd Export ZIP (*.zip)', extensions: ['zip'] }
+            ]
+        });
+        if (result.canceled || !result.filePaths.length) {
+            return { canceled: true };
+        }
+        return { canceled: false, filePath: result.filePaths[0] };
+    } catch (err) {
+        console.error('Failed to select Letterboxd ZIP:', err);
+        return { error: err.message };
+    }
+});
+
+ipcMain.handle('parse-letterboxd-zip', async (event, filePathOrBuffer) => {
+    try {
+        const existingMovies = DatabaseService.getAllMedia();
+        const result = await parseLetterboxdZip(filePathOrBuffer, existingMovies);
+        return {
+            success: true,
+            totalFound: result.totalFound,
+            duplicatesSkipped: result.duplicatesSkipped,
+            newMovies: result.newMovies
+        };
+    } catch (err) {
+        console.error('Failed to parse Letterboxd ZIP via IPC:', err);
+        return { error: err.message };
+    }
+});
+

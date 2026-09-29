@@ -1,4 +1,12 @@
-const { parseLetterboxdRSS, getNewMovies } = require('../../src/core/LetterboxdService');
+const {
+    parseLetterboxdRSS,
+    getNewMovies,
+    decodeBoxdId,
+    parseCsvBuffer,
+    validateLetterboxdZip,
+    processLetterboxdData,
+    parseLetterboxdZip
+} = require('../../src/core/LetterboxdService');
 
 describe('LetterboxdService', () => {
     describe('parseLetterboxdRSS', () => {
@@ -89,11 +97,20 @@ describe('LetterboxdService', () => {
                 { letterboxdId: 'watch-2' },
                 { letterboxdId: 'watch-1' }
             ];
-            // If watch-1 is the last synced, it should only return 3 and 2
             const result = getNewMovies(items, 'watch-1');
             expect(result).toHaveLength(2);
             expect(result[0].letterboxdId).toBe('watch-3');
             expect(result[1].letterboxdId).toBe('watch-2');
+        });
+    });
+
+    describe('backward compatibility re-exports', () => {
+        it('should re-export bulk import functions', () => {
+            expect(typeof decodeBoxdId).toBe('function');
+            expect(typeof parseCsvBuffer).toBe('function');
+            expect(typeof validateLetterboxdZip).toBe('function');
+            expect(typeof processLetterboxdData).toBe('function');
+            expect(typeof parseLetterboxdZip).toBe('function');
         });
     });
 });

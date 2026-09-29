@@ -1064,3 +1064,40 @@ select option {
     height: auto;
     display: block;
 }
+
+/* --- Letterboxd Bulk Import Drop Zone --- */
+.letterboxd-drop-zone {
+    border: 2px dashed #444;
+    border-radius: 8px;
+    padding: 20px 15px;
+    text-align: center;
+    background: #181d23;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    margin-top: 8px;
+}
+
+.letterboxd-drop-zone:hover,
+.letterboxd-drop-zone.dragover {
+    border-color: #00e054;
+    background: rgba(0, 224, 84, 0.08);
+    box-shadow: 0 0 12px rgba(0, 224, 84, 0.2);
+}
+
+.letterboxd-drop-zone .drop-zone-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.letterboxd-drop-zone .drop-zone-text {
+    margin: 0 0 4px 0;
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+.letterboxd-drop-zone .drop-zone-subtext {
+    margin: 0;
+    color: #888;
+    font-size: 0.8rem;
+}

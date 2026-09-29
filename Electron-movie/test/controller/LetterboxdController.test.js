@@ -187,4 +187,66 @@ describe('LetterboxdController', () => {
         expect(MovieModel.saveState).toHaveBeenCalled();
         expect(ModalManager.pop).toHaveBeenCalled();
     });
+
+    test('handleZipImport validates zip extension', async () => {
+        const file = { name: 'movies.txt' };
+        await LetterboxdController.handleZipImport(file);
+        const { showMessage } = require('../../src/view/UIHelpers.js');
+        expect(showMessage).toHaveBeenCalledWith('Please drop a valid .zip archive from Letterboxd.', 'error');
+    });
+
+    test('handleZipImport invokes parse-letterboxd-zip and shows confirm modal', async () => {
+        window.electronAPI.invoke.mockImplementation((channel) => {
+            if (channel === 'parse-letterboxd-zip') {
+                return Promise.resolve({
+                    success: true,
+                    totalFound: 10,
+                    duplicatesSkipped: 2,
+                    newMovies: [
+                        { title: 'Zip Movie 1', release_date: '2024-01-01', userRating: 4, watchDate: '2024-01-02' }
+                    ]
+                });
+            }
+            return Promise.resolve();
+        });
+
+        const file = { name: 'letterboxd-export.zip', path: '/path/to/export.zip' };
+        await LetterboxdController.handleZipImport(file);
+
+        expect(window.electronAPI.invoke).toHaveBeenCalledWith('parse-letterboxd-zip', '/path/to/export.zip');
+        expect(ModalManager.push).toHaveBeenCalledWith('syncConfirm');
+        expect(elements.syncMoviesList.children).toHaveLength(1);
+        expect(elements.syncMoviesList.children[0].textContent).toBe('Zip Movie 1 2024-01-02');
+    });
+
+    test('confirmSyncBtn handles bulk import via db:bulk-add', async () => {
+        window.electronAPI.invoke.mockImplementation((channel) => {
+            if (channel === 'parse-letterboxd-zip') {
+                return Promise.resolve({
+                    success: true,
+                    totalFound: 1,
+                    duplicatesSkipped: 0,
+                    newMovies: [
+                        { entryId: 'e1', title: 'Bulk Movie', release_date: '2024-01-01', userRating: 4, watchDate: '2024-01-02' }
+                    ]
+                });
+            }
+            if (channel === 'db:bulk-add') {
+                return Promise.resolve(1);
+            }
+            return Promise.resolve();
+        });
+
+        const file = { name: 'letterboxd-export.zip', path: '/path/to/export.zip' };
+        await LetterboxdController.handleZipImport(file);
+
+        // Click confirm
+        elements.confirmSyncBtn.click();
+        await new Promise(resolve => setTimeout(resolve, 10));
+
+        expect(window.electronAPI.invoke).toHaveBeenCalledWith('db:bulk-add', expect.any(Array));
+        expect(MovieModel.addMovie).toHaveBeenCalledWith(expect.objectContaining({ title: 'Bulk Movie' }));
+        expect(ModalManager.pop).toHaveBeenCalled();
+    });
 });
+

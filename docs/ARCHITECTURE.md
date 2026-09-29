@@ -87,7 +87,9 @@ Movie-Tracker-App/
     │   ├── main.js             # Window creation, IPC handlers
     │   ├── DatabaseService.js  # SQLite database, WAL mode, CRUD, debounced backup
     │   ├── preload.js          # Context bridge for secure IPC
-    │   └── LetterboxdService.js# Letterboxd RSS parsing logic
+    │   ├── LetterboxdService.js# Letterboxd RSS parsing & sync facade
+    │   ├── LetterboxdImportService.js # Bulk ZIP import validation, review joining & deduplication
+    │   └── LetterboxdUtils.js  # Base62 shortlink decoding & CSV stream parsing
     │
     ├── model/                  # Data layer
     │   ├── MovieModel.js       # State management, CRUD, filtering
@@ -106,7 +108,8 @@ Movie-Tracker-App/
         ├── MovieController.js  # Main app coordination & form handling
         ├── ModalManager.js     # Stack-based modal management
         ├── SearchController.js # Search input, TMDB selection
-        └── FilterController.js # Sort & filter event handling
+        ├── FilterController.js # Sort & filter event handling
+        └── LetterboxdController.js # Letterboxd RSS sync & Bulk ZIP drag-and-drop import
 ```
 
 ## Key Modules & Functions  
@@ -142,6 +145,9 @@ Movie-Tracker-App/
 | `trigger-backup-now` | Triggers immediate SQLite online backup |
 | `restore-from-backup` | Restores database from a selected SQLite backup or snapshot file |
 | `read-json` / `write-json` | Backward-compatibility proxies to DatabaseService (`write-json` invokes `syncMediaList`) |
+| `fetch-letterboxd-feed` | Fetches and parses public Letterboxd RSS feed for incremental sync |
+| `select-letterboxd-zip` | Native file picker dialog for selecting Letterboxd export ZIP archive |
+| `parse-letterboxd-zip` | Validates Letterboxd ZIP, decodes shortlinks, checks duplicates against SQLite |
 | `get-api-key` | (Legacy) Retrieves optional local TMDB key from `apiKey.txt` or `.env` |
 | `set-api-key` | (Legacy) Saves TMDB key to user data directory |
 | `is-dev` | Checks development mode |
@@ -194,6 +200,12 @@ Movie-Tracker-App/
 - Stack-based modal management with `push()`, `pop()`, `handleEscape()`
 - Modal registration system: `register(name, {open, close, isVisible})`
 - ESC key automatically closes topmost modal
+
+#### `controller/LetterboxdController.js`
+- Handles Letterboxd username saving and 1-way RSS diary synchronization
+- Manages drag-and-drop zone and file picker for Letterboxd export ZIP files
+- Coordinates confirmation modal with sync stats (total found, duplicates skipped, new movies)
+- Orchestrates two-tier import: instant SQLite write followed by paced background TMDB metadata & poster enrichment (~280ms interval, rate-limit safe)
 
 ## Data Flow & Dependencies  
 

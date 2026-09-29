@@ -1,6 +1,10 @@
 const { XMLParser } = require('fast-xml-parser');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
+// Re-exports from modular services for backward compatibility
+const { decodeBoxdId, parseCsvBuffer, BASE62_CHARS } = require('./LetterboxdUtils');
+const { validateLetterboxdZip, processLetterboxdData, parseLetterboxdZip } = require('./LetterboxdImportService');
+
 /**
  * Parses Letterboxd XML data into movie entries
  * @param {string} xmlData - The raw XML string from the RSS feed
@@ -111,5 +115,12 @@ function getNewMovies(rssItems, lastSyncId) {
 module.exports = {
     fetchLetterboxdRSS,
     getNewMovies,
-    parseLetterboxdRSS
+    parseLetterboxdRSS,
+    // Re-exports for backward compatibility
+    BASE62_CHARS,
+    decodeBoxdId,
+    parseCsvBuffer,
+    validateLetterboxdZip,
+    processLetterboxdData,
+    parseLetterboxdZip
 };

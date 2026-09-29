@@ -232,7 +232,26 @@
                         <button id="sync-letterboxd-btn" style="padding: 8px 16px; background-color: #00e054; color: #fff; width: 100%;">Sync Recent Activity</button>
                     </div>
                     <p class="setting-description" style="margin-top: 5px;" id="letterboxd-sync-status">Enter your username to sync recent activity.</p>
+                    
+                    <div style="margin-top: 18px; border-top: 1px dashed #333; padding-top: 15px;">
+                        <label style="font-weight: 600; font-size: 0.95em;">Bulk Import (Export ZIP):</label>
+                        <p class="setting-description" style="margin-top: 4px; margin-bottom: 10px;">Import your entire diary and written reviews from <a href="#" id="letterboxd-export-link" style="color: #00e054; text-decoration: underline;">letterboxd.com/user/exportdata/</a></p>
+                        
+                        <div id="letterboxd-drop-zone" class="letterboxd-drop-zone">
+                            <span class="drop-zone-icon">📦</span>
+                            <p class="drop-zone-text"><strong>Drop Letterboxd export .zip here</strong></p>
+                            <p class="drop-zone-subtext">or click to browse file</p>
+                            <input type="file" id="letterboxd-file-input" accept=".zip" style="display: none;">
+                        </div>
+                        <div id="letterboxd-bulk-status-container" style="margin-top: 10px; display: none;">
+                            <p class="setting-description" id="letterboxd-bulk-status" style="color: #00e054; margin: 0;"></p>
+                            <div id="letterboxd-enrichment-bar-container" style="display: none; margin-top: 6px; width: 100%; height: 6px; background: #222; border-radius: 3px; overflow: hidden;">
+                                <div id="letterboxd-enrichment-bar" style="width: 0%; height: 100%; background: #00e054; transition: width 0.3s;"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="setting-item" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
                     <label>Background Color:</label>
                     <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
@@ -298,10 +317,12 @@
 
     <!-- Letterboxd Sync Confirmation Modal -->
     <div id="sync-confirm-modal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <h2>Sync New Movies from Letterboxd</h2>
-            <p id="sync-confirm-message" style="margin-bottom: 15px;">Found X new movies. Add them to your local library?</p>
-            <ul id="sync-movies-list" style="max-height: 200px; overflow-y: auto; list-style-type: none; padding: 0; margin-bottom: 20px; background: #222; border-radius: 4px; padding: 10px;">
+        <div class="modal-content" style="max-width: 520px;">
+            <h2 id="sync-modal-title">Sync New Movies from Letterboxd</h2>
+            <div id="sync-confirm-stats" style="display: none; background: #181d23; border: 1px solid #333; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; font-size: 0.9em; line-height: 1.5;"></div>
+            <p id="sync-confirm-message" style="margin-bottom: 12px;">Found X new movies. Add them to your local library?</p>
+            <ul id="sync-movies-list" style="max-height: 220px; overflow-y: auto; list-style-type: none; padding: 0; margin-bottom: 20px; background: #222; border-radius: 4px; padding: 10px;">
+
                 <!-- New movies listed here -->
             </ul>
             <div class="modal-buttons">
@@ -311,6 +332,14 @@
         </div>
     </div>
 
+    <script>
+        window.addEventListener('error', (e) => {
+            console.error('[UNCAUGHT RENDERER ERROR]', e.message, 'at', e.filename, ':', e.lineno);
+        });
+        window.addEventListener('unhandledrejection', (e) => {
+            console.error('[UNHANDLED RENDERER REJECTION]', e.reason ? (e.reason.stack || e.reason) : e);
+        });
+    </script>
     <script type="module" src="../../app.js"></script>
 </body>
 

@@ -12,6 +12,7 @@ import * as MovieController from './controller/MovieController.js';
 import * as SearchController from './controller/SearchController.js';
 import * as FilterController from './controller/FilterController.js';
 import * as LetterboxdController from './controller/LetterboxdController.js';
+import * as ModalManager from './controller/ModalManager.js';
 
 /**
  * Gets all DOM element references
@@ -121,11 +122,20 @@ const getDOMElements = () => {
         posterGrid: document.getElementById('poster-grid'),
         posterCloseBtn: document.querySelector('.poster-close-btn'),
 
-        // Letterboxd Sync
+        // Letterboxd Sync & Bulk Import
         letterboxdUsernameInput: document.getElementById('letterboxd-username-input'),
         saveLetterboxdBtn: document.getElementById('save-letterboxd-btn'),
         syncLetterboxdBtn: document.getElementById('sync-letterboxd-btn'),
         letterboxdSyncStatus: document.getElementById('letterboxd-sync-status'),
+        letterboxdExportLink: document.getElementById('letterboxd-export-link'),
+        letterboxdDropZone: document.getElementById('letterboxd-drop-zone'),
+        letterboxdFileInput: document.getElementById('letterboxd-file-input'),
+        letterboxdBulkStatusContainer: document.getElementById('letterboxd-bulk-status-container'),
+        letterboxdBulkStatus: document.getElementById('letterboxd-bulk-status'),
+        letterboxdEnrichmentBarContainer: document.getElementById('letterboxd-enrichment-bar-container'),
+        letterboxdEnrichmentBar: document.getElementById('letterboxd-enrichment-bar'),
+        syncModalTitle: document.getElementById('sync-modal-title'),
+        syncConfirmStats: document.getElementById('sync-confirm-stats'),
         syncConfirmModal: document.getElementById('sync-confirm-modal'),
         syncConfirmMessage: document.getElementById('sync-confirm-message'),
         syncMoviesList: document.getElementById('sync-movies-list'),
@@ -133,6 +143,7 @@ const getDOMElements = () => {
         confirmSyncBtn: document.getElementById('confirm-sync-btn')
     };
 };
+
 
 /**
  * Initializes the application
@@ -144,7 +155,7 @@ const initApp = () => {
     UIHelpers.initUIHelpers(elements);
     MovieListView.initMovieListView(elements);
     ModalView.initModalView(elements);
-    PosterGridView.initPosterGridView(elements);
+    PosterGridView.initPosterGridView(elements, () => ModalManager.pop());
     MovieController.initMovieController(elements);
     SearchController.initSearchController(elements);
     FilterController.initFilterController(elements);
@@ -159,5 +170,9 @@ const initApp = () => {
     LetterboxdController.loadLetterboxdState();
 };
 
-// Initialize when DOM is ready
-window.onload = initApp;
+// Initialize when DOM is ready (safely handle deferred ES module loading)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}

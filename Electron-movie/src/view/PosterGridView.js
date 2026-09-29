@@ -2,47 +2,61 @@
  * PosterGridView - Handles the poster selection grid modal
  */
 
-// Use higher resolution for poster grid thumbnails
+// Native TMDB w300 resolution (crisp quality, lightweight ~21KB payload)
 const POSTER_THUMBNAIL_URL = 'https://image.tmdb.org/t/p/w300';
 
 // DOM elements
 let posterModal = null;
 let posterGrid = null;
 let posterCloseBtn = null;
+let modalCloseHandler = null;
 
 // State
 let allPosters = [];
 let loadedCount = 0;
 let onPosterSelect = null;
+let isLoadingMore = false;
 const INITIAL_LOAD = 25;  // 5x5 grid
 const LOAD_MORE = 10;     // 2 rows
 
 /**
  * Initialize PosterGridView with DOM elements
  * @param {Object} elements - Object containing DOM element references
+ * @param {Function} [onClose] - Optional handler to pop modal from stack
  */
-export const initPosterGridView = (elements) => {
+export const initPosterGridView = (elements, onClose = null) => {
     posterModal = elements.posterModal;
     posterGrid = elements.posterGrid;
     posterCloseBtn = elements.posterCloseBtn;
+    modalCloseHandler = onClose;
 
     // Close button event
     if (posterCloseBtn) {
-        posterCloseBtn.addEventListener('click', closePosterModal);
+        posterCloseBtn.addEventListener('click', () => {
+            if (modalCloseHandler) {
+                modalCloseHandler();
+            } else {
+                closePosterModal();
+            }
+        });
     }
 
     // Click outside to close
     if (posterModal) {
         posterModal.addEventListener('click', (e) => {
             if (e.target === posterModal) {
-                closePosterModal();
+                if (modalCloseHandler) {
+                    modalCloseHandler();
+                } else {
+                    closePosterModal();
+                }
             }
         });
     }
 
     // Setup infinite scroll
     if (posterGrid) {
-        posterGrid.addEventListener('scroll', handleScroll);
+        posterGrid.addEventListener('scroll', handleScroll, { passive: true });
     }
 };
 
@@ -77,16 +91,18 @@ export const closePosterModal = () => {
     }
     allPosters = [];
     loadedCount = 0;
+    isLoadingMore = false;
     onPosterSelect = null;
 };
 
 /**
- * Renders a batch of posters to the grid
+ * Renders a batch of posters to the grid using DocumentFragment
  * @param {number} startIndex - Starting index in allPosters array
  * @param {number} count - Number of posters to render
  */
 const renderPosterBatch = (startIndex, count) => {
     const endIndex = Math.min(startIndex + count, allPosters.length);
+    const fragment = document.createDocumentFragment();
 
     for (let i = startIndex; i < endIndex; i++) {
         const posterPath = allPosters[i];
@@ -101,9 +117,10 @@ const renderPosterBatch = (startIndex, count) => {
 
         posterItem.appendChild(img);
         posterItem.addEventListener('click', () => handlePosterClick(posterPath));
-        posterGrid.appendChild(posterItem);
+        fragment.appendChild(posterItem);
     }
 
+    posterGrid.appendChild(fragment);
     loadedCount = endIndex;
 };
 
@@ -115,21 +132,27 @@ const handlePosterClick = (posterPath) => {
     if (onPosterSelect) {
         onPosterSelect(posterPath);
     }
-    closePosterModal();
+    if (modalCloseHandler) {
+        modalCloseHandler();
+    } else {
+        closePosterModal();
+    }
 };
 
 /**
  * Handles scroll event for infinite loading
  */
 const handleScroll = () => {
-    if (!posterGrid) return;
+    if (!posterGrid || isLoadingMore) return;
 
     const { scrollTop, scrollHeight, clientHeight } = posterGrid;
 
     // Load more when within 100px of bottom
     if (scrollHeight - scrollTop - clientHeight < 100) {
         if (loadedCount < allPosters.length) {
+            isLoadingMore = true;
             renderPosterBatch(loadedCount, LOAD_MORE);
+            isLoadingMore = false;
         }
     }
 };

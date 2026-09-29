@@ -77,11 +77,13 @@ describe('Main Process', () => {
             { channel: 'toggle-auto-backup', description: 'Enables or disables automatic background backup' },
             { channel: 'remove-backup-folder', description: 'Disconnects backup folder and stops backup timer' },
             { channel: 'export-database', description: 'Exports a standalone SQLite database snapshot' },
-            { channel: 'trigger-backup-now', description: 'Executes manual SQLite online backup' },
-            { channel: 'restore-from-backup', description: 'Restores SQLite database from backup file' }
+            { channel: 'restore-from-backup', description: 'Restores SQLite database from backup file' },
+            { channel: 'select-letterboxd-zip', description: 'Opens Letterboxd export ZIP file selection dialog' },
+            { channel: 'parse-letterboxd-zip', description: 'Validates and parses Letterboxd export ZIP file' }
         ];
 
         test.each(expectedHandlers)(
+
             'should have handler for "$channel" ($description)',
             ({ channel }) => {
                 // Document expected channels

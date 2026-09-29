@@ -12,6 +12,7 @@ module.exports = {
     ],
     coverageDirectory: 'coverage',
     testMatch: ['**/*.test.js'],
+    testPathIgnorePatterns: ['/node_modules/', '/test/e2e/'],
     moduleNameMapper: {
         '^(\\.{1,2}/.*)\\.js$': '$1'
     }

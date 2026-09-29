@@ -1,0 +1,14 @@
+{
+  "name": "movie-tracker-app-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Root workspace proxy for Movie Tracker Electron application",
+  "scripts": {
+    "start": "npm --prefix Electron-movie start",
+    "start:prod": "npm --prefix Electron-movie run start:prod",
+    "seed": "npm --prefix Electron-movie run seed",
+    "seeds": "npm --prefix Electron-movie run seed",
+    "test": "npm --prefix Electron-movie test",
+    "build": "npm --prefix Electron-movie run build"
+  }
+}

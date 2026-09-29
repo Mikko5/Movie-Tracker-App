@@ -721,9 +721,32 @@ const handleRestoreBackup = async () => {
  */
 const handleShowPosters = async () => {
     const movieToAdd = MovieModel.getMovieToAdd();
-    if (movieToAdd && movieToAdd.id) {
+    if (!movieToAdd || !movieToAdd.id) {
+        showMessage('No movie selected or TMDB ID missing.', 'error');
+        return;
+    }
+
+    // Reuse posters if already fetched for this movie during this session
+    if (movieToAdd._availablePosters && movieToAdd._availablePosters.length > 0) {
+        ModalManager.push('poster', {
+            posters: movieToAdd._availablePosters,
+            callback: (selectedPath) => {
+                movieToAdd.customPoster = selectedPath;
+                ModalView.setCustomPosterInput(selectedPath);
+            }
+        });
+        return;
+    }
+
+    if (showPostersBtn) {
+        showPostersBtn.disabled = true;
+        showPostersBtn.textContent = 'Fetching...';
+    }
+
+    try {
         const posters = await ApiService.getAllPosters(movieToAdd.id, showMessage);
         if (posters && posters.length > 0) {
+            movieToAdd._availablePosters = posters;
             ModalManager.push('poster', {
                 posters: posters,
                 callback: (selectedPath) => {
@@ -732,8 +755,11 @@ const handleShowPosters = async () => {
                 }
             });
         }
-    } else {
-        showMessage('No movie selected or TMDB ID missing.', 'error');
+    } finally {
+        if (showPostersBtn) {
+            showPostersBtn.disabled = false;
+            showPostersBtn.textContent = 'Fetch Poster';
+        }
     }
 };
 

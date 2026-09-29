@@ -48,11 +48,9 @@ class DatabaseService {
 
         // Create media_items table
         this._createSchema();
-        try { fs.appendFileSync(logFile, `Schema created\n`); } catch (_) {}
 
         // Migrate legacy JSON if needed
         this._migrateLegacyJsonIfNeeded(legacyJsonPath, dataDir);
-        try { fs.appendFileSync(logFile, `Migration checked\n`); } catch (_) {}
 
         return this;
     }
