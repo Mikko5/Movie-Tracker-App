@@ -122,7 +122,7 @@ export const startBackgroundEnrichment = async () => {
 
                         MovieModel.updateMovie(movie.entryId, updated);
                         await window.electronAPI.invoke('db:update-movie', movie.entryId, updated);
-                        refreshFiltersAndView();
+                        refreshFiltersAndView({ preserveScroll: true });
                     }
                 }
             }

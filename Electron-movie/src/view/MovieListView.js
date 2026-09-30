@@ -106,13 +106,27 @@ export const renderFilters = (watchedMovies, currentFilters) => {
 /**
  * Renders the movies from the array to the DOM.
  * @param {Array} movies - Filtered and sorted movies array
+ * @param {Object} [options={}] - Render options
+ * @param {boolean} [options.preserveScroll=false] - Whether to preserve current scroll position
  */
-export const renderMovies = (movies) => {
-    movieList.innerHTML = '';
+export const renderMovies = (movies, options = {}) => {
+    const { preserveScroll = false } = options;
+    const prevScrollY = (preserveScroll && typeof window !== 'undefined')
+        ? (window.scrollY || (document.documentElement && document.documentElement.scrollTop) || 0)
+        : 0;
+
+    // Prevent container height collapse during re-rendering
+    if (movieList && preserveScroll && movieList.offsetHeight > 0) {
+        movieList.style.minHeight = `${movieList.offsetHeight}px`;
+    }
+
     if (movies.length === 0) {
         movieList.innerHTML = `<p style="text-align: center; color: #aaa;">No movies match the current filter/sort options.</p>`;
+        if (movieList) movieList.style.minHeight = '';
         return;
     }
+
+    const fragment = document.createDocumentFragment();
 
     movies.forEach((movie) => {
         const movieCard = document.createElement('li');
@@ -145,9 +159,23 @@ export const renderMovies = (movies) => {
         `;
         movieCard.prepend(img);
 
-        movieList.appendChild(movieCard);
+        fragment.appendChild(movieCard);
+    });
 
-        // Adjust year margin
+    if (movieList.replaceChildren) {
+        movieList.replaceChildren(fragment);
+    } else {
+        movieList.innerHTML = '';
+        movieList.appendChild(fragment);
+    }
+
+    // Reset minHeight lock
+    if (movieList) {
+        movieList.style.minHeight = '';
+    }
+
+    // Adjust year margin for all cards
+    movieList.querySelectorAll('.movie-card').forEach((movieCard) => {
         const titleEl = movieCard.querySelector('.movie-card-title');
         const yearEl = movieCard.querySelector('.movie-card-year');
         if (titleEl && yearEl) {
@@ -158,6 +186,16 @@ export const renderMovies = (movies) => {
             }
         }
     });
+
+    // Restore scroll position
+    if (preserveScroll && prevScrollY > 0 && typeof window !== 'undefined' && window.scrollTo) {
+        window.scrollTo({ top: prevScrollY, behavior: 'instant' });
+        if (typeof requestAnimationFrame === 'function') {
+            requestAnimationFrame(() => {
+                window.scrollTo({ top: prevScrollY, behavior: 'instant' });
+            });
+        }
+    }
 };
 
 /**

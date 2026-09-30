@@ -99,18 +99,20 @@ export const initMovieController = (elements) => {
 
 /**
  * Refreshes the movie list view
+ * @param {Object} [options={}] - Render options
  */
-export const refreshView = () => {
+export const refreshView = (options = {}) => {
     const movies = MovieModel.getFilteredAndSortedMovies();
-    MovieListView.renderMovies(movies);
+    MovieListView.renderMovies(movies, options);
 };
 
 /**
  * Refreshes filters and view
+ * @param {Object} [options={}] - Render options
  */
-export const refreshFiltersAndView = () => {
+export const refreshFiltersAndView = (options = {}) => {
     FilterController.refreshFilters();
-    refreshView();
+    refreshView(options);
 };
 
 /**
@@ -398,7 +400,8 @@ const handleFormSubmit = async (event) => {
     movieToAdd.format = formData.format;
     movieToAdd.customPoster = formData.customPoster;
 
-    if (currentEntryId !== null) { // Edit mode
+    const isEditing = currentEntryId !== null;
+    if (isEditing) { // Edit mode
         if (MovieModel.updateMovie(currentEntryId, movieToAdd)) {
             showMessage(`${movieToAdd.title} updated successfully!`, 'success');
         }
@@ -408,7 +411,7 @@ const handleFormSubmit = async (event) => {
     }
 
     await MovieModel.saveState(showMessage);
-    refreshFiltersAndView();
+    refreshFiltersAndView({ preserveScroll: isEditing });
 
     ModalView.closeDetailsModal();
     SearchController.clearSearch();
@@ -421,7 +424,7 @@ const handleDelete = async () => {
     const currentEntryId = MovieModel.getCurrentEntryId();
     if (MovieModel.deleteMovie(currentEntryId)) {
         await MovieModel.saveState(showMessage);
-        refreshFiltersAndView();
+        refreshFiltersAndView({ preserveScroll: true });
         showMessage('Movie removed successfully!', 'success');
         ModalView.closeInfoModal();
     }

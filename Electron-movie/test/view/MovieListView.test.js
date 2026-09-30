@@ -128,6 +128,32 @@ describe('MovieListView', () => {
 
             expect(UIHelpers.createPosterImage).toHaveBeenCalled();
         });
+
+        test('preserves scroll position when preserveScroll is true', () => {
+            window.scrollTo = jest.fn();
+            Object.defineProperty(window, 'scrollY', { value: 650, configurable: true });
+
+            const movies = [
+                { title: 'Scroll Test', entryId: 'sc1', userRating: 8, watchDate: '2023-01-01' }
+            ];
+
+            MovieListView.renderMovies(movies, { preserveScroll: true });
+
+            expect(window.scrollTo).toHaveBeenCalledWith({ top: 650, behavior: 'instant' });
+        });
+
+        test('does not restore scroll position when preserveScroll is false', () => {
+            window.scrollTo = jest.fn();
+            Object.defineProperty(window, 'scrollY', { value: 650, configurable: true });
+
+            const movies = [
+                { title: 'Scroll Test', entryId: 'sc1', userRating: 8, watchDate: '2023-01-01' }
+            ];
+
+            MovieListView.renderMovies(movies, { preserveScroll: false });
+
+            expect(window.scrollTo).not.toHaveBeenCalled();
+        });
     });
 
     describe('renderSearchResults', () => {
