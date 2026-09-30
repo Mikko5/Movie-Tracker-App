@@ -621,6 +621,17 @@ h1 {
     filter: brightness(1.1);
 }
 
+#letterboxd-review-btn {
+    background-color: #202830;
+    color: #00e054;
+    border: 1px solid #00e054;
+}
+
+#letterboxd-review-btn:hover {
+    background-color: #00e054;
+    color: #14181c;
+}
+
 /* Style Edit button with blue color */
 #edit-btn {
     background-color: #1e90ff;

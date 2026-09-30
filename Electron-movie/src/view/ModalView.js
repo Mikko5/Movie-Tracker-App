@@ -28,6 +28,7 @@ let infocomment = null;
 let infocommentP = null;
 let imdbBtn = null;
 let letterboxdBtn = null;
+let letterboxdReviewBtn = null;
 
 let deleteConfirmModal = null;
 let settingsModal = null;
@@ -62,6 +63,7 @@ export const initModalView = (elements) => {
     infocommentP = elements.infocommentP;
     imdbBtn = elements.imdbBtn;
     letterboxdBtn = elements.letterboxdBtn;
+    letterboxdReviewBtn = elements.letterboxdReviewBtn;
 
     deleteConfirmModal = elements.deleteConfirmModal;
     settingsModal = elements.settingsModal;
@@ -140,12 +142,20 @@ export const openInfoModal = (movie) => {
         window.electronAPI.send('open-external-link', `https://www.imdb.com/title/${movie.imdb_id}`);
     };
     letterboxdBtn.onclick = () => {
-        if (movie.letterboxdUrl) {
-            window.electronAPI.send('open-external-link', movie.letterboxdUrl);
-        } else {
-            window.electronAPI.send('open-external-link', `https://letterboxd.com/search/films/${encodeURIComponent(movie.title)}`);
-        }
+        window.electronAPI.send('open-external-link', getLetterboxdMovieUrl(movie));
     };
+
+    if (letterboxdReviewBtn) {
+        if (movie.letterboxdUrl) {
+            letterboxdReviewBtn.style.display = 'inline-block';
+            letterboxdReviewBtn.onclick = () => {
+                window.electronAPI.send('open-external-link', movie.letterboxdUrl);
+            };
+        } else {
+            letterboxdReviewBtn.style.display = 'none';
+            letterboxdReviewBtn.onclick = null;
+        }
+    }
 
     // Show or hide Watched On and Comments based on data
     if (movie.format) {
@@ -320,3 +330,28 @@ export const setCustomPosterInput = (value) => {
         customPosterInput.value = value;
     }
 };
+
+/**
+ * Resolves the official Letterboxd movie page URL using TMDb / IMDb redirect routes.
+ * Handles duplicate movie titles and year disambiguation automatically.
+ * @param {Object} movie 
+ * @returns {string} Letterboxd URL
+ */
+export const getLetterboxdMovieUrl = (movie) => {
+    if (!movie) return 'https://letterboxd.com';
+    const tmdbId = movie.id || movie.tmdbId;
+    if (tmdbId) {
+        return `https://letterboxd.com/tmdb/${tmdbId}/`;
+    }
+    if (movie.imdb_id) {
+        return `https://letterboxd.com/imdb/${movie.imdb_id}/`;
+    }
+    if (movie.letterboxdUrl) {
+        const filmSlugMatch = movie.letterboxdUrl.match(/\/film\/([^/]+)/);
+        if (filmSlugMatch) {
+            return `https://letterboxd.com/film/${filmSlugMatch[1]}/`;
+        }
+    }
+    return `https://letterboxd.com/search/films/${encodeURIComponent(movie.title || '')}/`;
+};
+

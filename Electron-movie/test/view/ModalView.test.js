@@ -37,6 +37,7 @@ describe('ModalView', () => {
     let infocommentP;
     let imdbBtn;
     let letterboxdBtn;
+    let letterboxdReviewBtn;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -105,6 +106,7 @@ describe('ModalView', () => {
         infocommentP = document.createElement('p');
         imdbBtn = document.createElement('button');
         letterboxdBtn = document.createElement('button');
+        letterboxdReviewBtn = document.createElement('button');
 
         document.body.appendChild(detailsModal);
         document.body.appendChild(infoModal);
@@ -138,6 +140,7 @@ describe('ModalView', () => {
             infocommentP,
             imdbBtn,
             letterboxdBtn,
+            letterboxdReviewBtn,
             deleteConfirmModal,
             settingsModal,
             backupModal,
@@ -212,20 +215,80 @@ describe('ModalView', () => {
             expect(ModalView.isInfoModalVisible()).toBe(true);
         });
         
-        test('Letterboxd button uses letterboxdUrl if available', () => {
-            const movie = { title: 'Test', letterboxdUrl: 'https://letterboxd.com/user/film/test/' };
+        test('Letterboxd button redirects to TMDB endpoint if id is present', () => {
+            const movie = { title: 'Interstellar', id: 157336 };
             ModalView.openInfoModal(movie);
             
             letterboxdBtn.click();
-            expect(window.electronAPI.send).toHaveBeenCalledWith('open-external-link', 'https://letterboxd.com/user/film/test/');
+            expect(window.electronAPI.send).toHaveBeenCalledWith('open-external-link', 'https://letterboxd.com/tmdb/157336/');
         });
 
-        test('Letterboxd button falls back to search URL if letterboxdUrl is missing', () => {
+        test('Letterboxd button redirects to IMDb endpoint if only imdb_id is present', () => {
+            const movie = { title: 'Interstellar', imdb_id: 'tt0816692' };
+            ModalView.openInfoModal(movie);
+            
+            letterboxdBtn.click();
+            expect(window.electronAPI.send).toHaveBeenCalledWith('open-external-link', 'https://letterboxd.com/imdb/tt0816692/');
+        });
+
+        test('Letterboxd button extracts canonical film slug from diary URL when no IDs present', () => {
+            const movie = { title: 'The Odyssey', letterboxdUrl: 'https://letterboxd.com/user/film/the-odyssey-2026/' };
+            ModalView.openInfoModal(movie);
+            
+            letterboxdBtn.click();
+            expect(window.electronAPI.send).toHaveBeenCalledWith('open-external-link', 'https://letterboxd.com/film/the-odyssey-2026/');
+        });
+
+        test('Letterboxd button falls back to search URL if no IDs or film slug', () => {
             const movie = { title: 'Test Movie' };
             ModalView.openInfoModal(movie);
             
             letterboxdBtn.click();
-            expect(window.electronAPI.send).toHaveBeenCalledWith('open-external-link', 'https://letterboxd.com/search/films/Test%20Movie');
+            expect(window.electronAPI.send).toHaveBeenCalledWith('open-external-link', 'https://letterboxd.com/search/films/Test%20Movie/');
+        });
+
+        test('shows and wires "My Review" button when letterboxdUrl exists', () => {
+            const movie = { title: 'Test Movie', id: 123, letterboxdUrl: 'https://boxd.it/5sRy03' };
+            ModalView.openInfoModal(movie);
+
+            expect(letterboxdReviewBtn.style.display).toBe('inline-block');
+            letterboxdReviewBtn.click();
+            expect(window.electronAPI.send).toHaveBeenCalledWith('open-external-link', 'https://boxd.it/5sRy03');
+        });
+
+        test('hides "My Review" button when letterboxdUrl is not present', () => {
+            const movie = { title: 'Test Movie', id: 123 };
+            ModalView.openInfoModal(movie);
+
+            expect(letterboxdReviewBtn.style.display).toBe('none');
+        });
+    });
+
+    describe('getLetterboxdMovieUrl helper', () => {
+        test('returns TMDB endpoint when id exists', () => {
+            expect(ModalView.getLetterboxdMovieUrl({ id: 999 })).toBe('https://letterboxd.com/tmdb/999/');
+        });
+
+        test('returns TMDB endpoint when tmdbId exists', () => {
+            expect(ModalView.getLetterboxdMovieUrl({ tmdbId: 888 })).toBe('https://letterboxd.com/tmdb/888/');
+        });
+
+        test('returns IMDb endpoint when only imdb_id exists', () => {
+            expect(ModalView.getLetterboxdMovieUrl({ imdb_id: 'tt1234567' })).toBe('https://letterboxd.com/imdb/tt1234567/');
+        });
+
+        test('extracts canonical film slug from diary/review URL', () => {
+            expect(ModalView.getLetterboxdMovieUrl({ letterboxdUrl: 'https://letterboxd.com/ikbenmikko/film/resident-evil-2026/1/' }))
+                .toBe('https://letterboxd.com/film/resident-evil-2026/');
+        });
+
+        test('falls back to search query', () => {
+            expect(ModalView.getLetterboxdMovieUrl({ title: 'Alien Romulus' }))
+                .toBe('https://letterboxd.com/search/films/Alien%20Romulus/');
+        });
+
+        test('handles null/undefined movie safely', () => {
+            expect(ModalView.getLetterboxdMovieUrl(null)).toBe('https://letterboxd.com');
         });
     });
 

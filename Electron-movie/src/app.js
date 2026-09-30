@@ -84,6 +84,7 @@ const getDOMElements = () => {
         deleteBtn: document.getElementById('delete-btn'),
         imdbBtn: document.getElementById('imdb-btn'),
         letterboxdBtn: document.getElementById('letterboxd-btn'),
+        letterboxdReviewBtn: document.getElementById('letterboxd-review-btn'),
 
         // Delete confirmation modal
         deleteConfirmModal: document.getElementById('delete-confirm-modal'),
